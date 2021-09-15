@@ -1,0 +1,28 @@
+public class QandA {
+	public static void main(String[] args) {
+		System.out.println("Where is your dorm?");
+		System.out.println("I am living in T-house");
+		System.out.println();
+		
+		System.out.println("What classes are you taking this year?");
+		System.out.println("I am taking Calculus BC, Advance Computer Science, Chinese 4, English, AP physics");
+		System.out.println("");
+		
+		System.out.println("What have you done this summer?");
+		System.out.println("I played electric guitar, study for SAT, and attend summer camp");
+		System.out.println("");
+		
+		System.out.println("What is your favorite song recently?");
+		System.out.println("I like Thunderous by Stray Kids");
+		System.out.println("");
+		
+		System.out.println("What is your favorite game?");
+		System.out.println("I like rythem games mostly. Currently, I am plying genshin impact. It is not a rythem game, but I enjoy playing it.");
+		System.out.println("");
+		
+		System.out.println("What do you do in your free time?");
+		System.out.println("I watch a lot of youtube. I play game and play guitar sometimes.");
+		System.out.println("");
+		
+	}
+}
