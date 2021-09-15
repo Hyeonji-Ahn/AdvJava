@@ -1,0 +1,132 @@
+package LInkedList;
+
+public class MyLinkedList<E> {
+	private class Node {
+		
+		Node next = null;
+		E data;
+		
+		public Node(E data) {
+			this.data = data;
+		}
+	}
+	
+	private Node first;
+	
+	public void add(E info, int i) {
+		
+		if(first == null) {
+			first = new Node(info);
+			return;
+		}
+		
+		if(i == 0) {
+			Node newNode = new Node(info);
+			newNode.next = first;
+			first = newNode;
+			return;
+		}
+		
+		try {
+			Node curr = first;
+			
+			for (int j=0; j<i; j++) {
+				curr = curr.next;
+			}
+			
+			Node newNode = new Node(info);
+			newNode.next = curr.next;
+			curr.next = newNode;
+		}
+		
+		
+		catch(NullPointerException e) {
+			throw new IndexOutOfBoundsException();
+		}
+	}
+	
+	public void add(E info) {
+		if(first == null) {
+			first = new Node(info);
+			return;
+		}
+		Node curr = first;
+		while (curr.next != null) {
+			curr = curr.next;
+		}
+		curr.next = new Node(info);	
+	}
+	
+	public int size() {
+		int count = 0;
+		Node curr = first;
+		while (curr != null) {
+			curr = curr.next;
+			count++;
+		}
+		return count;
+	} 
+	
+	public E get(int i) {
+		try {
+			Node curr = first;
+			
+			for (int j=0; j<i; j++) {
+				curr = curr.next;
+			}
+			return curr.data;
+		}
+		catch(NullPointerException e) {
+			throw new IndexOutOfBoundsException();
+		}
+		
+	}
+	
+	public void printAll() {
+		Node curr = first;
+		for (int i=0; i<size(); i++) {
+			System.out.println(curr.data);
+			curr = curr.next;
+		}
+	}
+	
+	public E remove(int i) {
+		if(first == null) {
+			return null;
+		}
+		if(i == 0) {
+			E info = first.data;
+			first = first.next;
+			return info;
+		}
+		
+		try {
+			Node curr = first;
+			
+			for (int j=0; j<i-1; j++) {
+				curr = curr.next;
+			}
+			E info = curr.next.data;
+			curr.next = curr.next.next;
+			return info;
+		}
+		
+		catch(NullPointerException e) {
+			throw new IndexOutOfBoundsException();
+		}
+		
+	}
+	
+	public static void main(String[] args) {
+		MyLinkedList<String> list= new MyLinkedList<String>();
+		list.add("A");
+		list.add("B");
+		list.add("C");
+		list.printAll();
+		list.remove(1);
+		System.out.println(list.get(1));
+		System.out.println(list.size());
+	}
+	
+	
+}
