@@ -1,0 +1,38 @@
+package LInkedList;
+
+public class Card {
+	private String suit;
+	private int num;
+	
+	public Card(String suit, int num) { //declare card to hold suit and number
+		this.suit = suit;
+		this.num = num;
+	}
+	
+	public void print() { //print the card information
+		System.out.println(suit +" "+num);
+	}
+	
+	public String getSuit() { //return suit of the card
+		return suit;
+	}
+	
+	public int getNum() { //return number of the card
+		return num;
+	}
+	
+	public int getSuitNum() { //return the number of the suit to make comparison easier 
+		if(suit == "spades") {
+			return 1;
+		}else if(suit == "hearts") {
+			return 2;
+		}else if(suit == "clubs") {
+			return 3;
+		}else if(suit == "diamonds") {
+			return 4;
+		}
+		return 0;
+	}
+	
+	
+}
