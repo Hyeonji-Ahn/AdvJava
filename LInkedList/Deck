@@ -1,0 +1,53 @@
+package LInkedList;
+
+public class Deck {
+	private MyLinkedList<Card> deck = new MyLinkedList<Card>();
+	public Deck() { //set up 52 cards
+		for(int i=0; i<13; i++) {
+			deck.add(new Card("spades",i+1));
+		}
+		for(int i=0; i<13; i++) {
+			deck.add(new Card("diamonds",i+1));
+		}
+		for(int i=0; i<13; i++) {
+			deck.add(new Card("clubs",i+1));
+		}
+		for(int i=0; i<13; i++) {
+			deck.add(new Card("hearts",i+1));
+		}
+	}
+	
+	public void shuffle() { //shuffle the deck through switching.
+		int count = (int)(Math.random()*50)+10;
+		for(int i=0; i<count; i++) {
+			int randomA =(int)(Math.random() * 52);
+			int randomB =(int)(Math.random() * 52);
+			Card tempa;
+			Card tempb;
+			tempa=deck.get(randomA);
+			tempb = deck.get(randomB);
+			deck.change(tempa, randomB);
+			deck.change(tempb, randomA);
+		}
+	}
+	
+	public void displayDeck() { //display the whole deck
+		for(int i=0; i<52; i++) {
+			deck.get(i).print();
+		}
+	}
+	
+	public int getSize() { //get the size of deck
+		return deck.size();
+	}
+	
+	public Card getCard(int i) { //get the single card from the deck.
+		return deck.get(i);
+	}
+	
+	public static void main(String[] args) { //testing
+		Deck d = new Deck();
+		d.shuffle();
+		d.displayDeck();
+	}
+}
