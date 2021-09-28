@@ -1,0 +1,49 @@
+package map;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Scanner;
+
+
+public class Translator {
+	private static Scanner readinput = new Scanner(System.in);
+	private HashMap<String, String> words;
+	
+	public Translator() {
+		words = new HashMap<String,String>();
+		BufferedReader in;
+		
+		try {
+			in = new BufferedReader(new FileReader("EnglishToArabicDictionary.txt"));
+			in.readLine();
+			
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
+				//System.out.println("Eng: "+line);
+				String value = in.readLine();
+				//System.out.println("Arb: "+value);
+				words.put(line, value);
+			}
+		}
+		catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void run() {
+		System.out.println("Type English");
+		String eng = readinput.nextLine();
+		System.out.println(eng+" is "+words.get(eng));
+		System.out.println("Enter to proceed");
+		String enterkey = readinput.nextLine();
+		if(enterkey.equals("")) { // check enter
+			System.out.println("-------------------");
+			run();
+		}
+	}
+	public static void main(String[] args) {
+		Translator runner = new Translator();
+		runner.run();
+	}
+}
