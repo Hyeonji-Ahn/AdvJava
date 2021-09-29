@@ -1,0 +1,29 @@
+package map;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+
+public class HuffmanEncoding {
+	
+	private HashMap<Character, Integer> freqMap;
+	public void fileReader() throws IOException {
+		freqMap = new HashMap<Character,Integer>();
+
+		FileReader fr = new FileReader("SomeFile"); 
+		int letter;
+		while ((letter = fr.read()) != -1) {
+			char letter_ch = (char)letter;
+            if(freqMap.get(letter_ch)==null) {
+            	freqMap.put(letter_ch,1);
+            }else {
+            	freqMap.put(letter_ch,freqMap.get(letter_ch)+1);
+            }
+        }
+		System.out.println(freqMap);
+	}
+	
+	public static void main(String[] args) throws IOException {
+		HuffmanEncoding runner = new HuffmanEncoding();
+		runner.fileReader();
+	}
+}
