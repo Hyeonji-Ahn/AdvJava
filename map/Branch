@@ -1,0 +1,29 @@
+package map;
+
+public class Branch<E> {
+	
+		E info;
+		Branch<E> right, left;
+		boolean isLeaf;
+		
+		public Branch(Branch<E> right, Branch<E> left) {
+			this.info = null;
+			this.right = right;
+			this.left = left;
+			this.isLeaf = false;
+		}
+		
+		public Branch(E info) {
+			this.info = info;
+			this.right = null;
+			this.left = null;
+			this.isLeaf = true;
+		}
+		
+		public E getInfo() {
+			return info;
+		}
+		
+		
+
+}
