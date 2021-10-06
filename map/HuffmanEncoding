@@ -5,7 +5,45 @@ import java.util.HashMap;
 
 public class HuffmanEncoding {
 	
+	private PriorityQueue<Branch<Character>> pq = new PriorityQueue<Branch<Character>>();
 	private HashMap<Character, Integer> freqMap;
+	private HashMap<Character,String> codeMap = new HashMap<Character,String>();
+	private Branch<Character> mainRoot;
+	
+	public void makeTree() {
+		while(pq.getSize()>1) {
+			int priority = pq.getPriority(0);
+			Branch<Character> leftLeaf = pq.pop();
+			//System.out.print("left " + leftLeaf.info+" ");
+			//System.out.println(leftLeaf.isLeaf);
+			
+			priority += pq.getPriority(0);
+			Branch<Character> rightLeaf =  pq.pop();
+			//System.out.print("right " +rightLeaf.info+" ");
+			//System.out.println(rightLeaf.isLeaf);
+			
+			Branch<Character> root = new Branch<Character>(rightLeaf,leftLeaf);
+			//System.out.print("root " + root.info+" ");
+			//System.out.println(root.isLeaf);
+			pq.add(root, priority);
+		}
+		mainRoot = pq.pop();
+		//System.out.println("**********");
+	}
+	
+	public void getCode(String code, Branch<Character> b) {
+		if(b.isLeaf) {
+			//System.out.println(b.info);
+			//System.out.println(code);
+			codeMap.put(b.info, code);
+		}else {
+			//System.out.println(b.info);
+			//System.out.println(code);
+			getCode(code+"0",b.left);
+			getCode(code+"1",b.right);
+		}
+	}
+	
 	public void fileReader() throws IOException {
 		freqMap = new HashMap<Character,Integer>();
 
@@ -19,11 +57,23 @@ public class HuffmanEncoding {
             	freqMap.put(letter_ch,freqMap.get(letter_ch)+1);
             }
         }
-		System.out.println(freqMap);
+		//System.out.println(freqMap);
 	}
+	
+	public void buildPQ() {
+		for(Character a: freqMap.keySet()) {
+			pq.add(new Branch<Character>(a), freqMap.get(a));
+		}
+	}
+	
 	
 	public static void main(String[] args) throws IOException {
 		HuffmanEncoding runner = new HuffmanEncoding();
 		runner.fileReader();
+		runner.buildPQ();
+		runner.makeTree();
+		runner.getCode("",runner.mainRoot);
+		System.out.println(runner.codeMap);
+		
 	}
 }
