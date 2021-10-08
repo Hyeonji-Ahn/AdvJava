@@ -1,5 +1,8 @@
 package map;
+
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -44,10 +47,10 @@ public class HuffmanEncoding {
 		}
 	}
 	
-	public void fileReader() throws IOException {
+	public void fileReader(String fileName) throws IOException {
 		freqMap = new HashMap<Character,Integer>();
 
-		FileReader fr = new FileReader("SomeFile"); 
+		FileReader fr = new FileReader(fileName); 
 		int letter;
 		while ((letter = fr.read()) != -1) {
 			char letter_ch = (char)letter;
@@ -57,7 +60,6 @@ public class HuffmanEncoding {
             	freqMap.put(letter_ch,freqMap.get(letter_ch)+1);
             }
         }
-		//System.out.println(freqMap);
 	}
 	
 	public void buildPQ() {
@@ -66,14 +68,71 @@ public class HuffmanEncoding {
 		}
 	}
 	
+	public void writeFile(String FileName) throws IOException {
+		FileReader fr = new FileReader(FileName); 
+		BufferedBitWriter write = new BufferedBitWriter("compressed file");
+		int letter;
+		while ((letter = fr.read()) != -1) {
+			String code =codeMap.get(((char)letter));
+			while(code.length()>0) {
+				if(code.charAt(0)=='0') {
+					write.writeBit(false);
+				}else {
+					write.writeBit(true);
+				}
+				code = code.substring(1);
+			}
+		}
+		
+		write.close();
+	}
+	
+	public void readCompFile(String fileName) throws IOException {
+		BufferedBitReader read = new BufferedBitReader(fileName);
+		BufferedWriter out = new BufferedWriter(new FileWriter("decompressed.txt"));
+		String currCode = "";
+		while (read.hasNext()){ 
+			boolean bit = read.readBit(); 
+			if(bit) {
+				currCode += "1";
+			}else {
+				currCode += "0";
+			}
+			
+			for(char a: codeMap.keySet()) {
+				if(codeMap.get(a).equals(currCode)) {
+					out.write(a);
+					currCode = "";
+					break;
+				}
+			}
+		}
+		read.close();
+		out.close();
+	}
+	
 	
 	public static void main(String[] args) throws IOException {
 		HuffmanEncoding runner = new HuffmanEncoding();
-		runner.fileReader();
-		runner.buildPQ();
-		runner.makeTree();
-		runner.getCode("",runner.mainRoot);
-		System.out.println(runner.codeMap);
+		runner.fileReader("WarAndPeace.txt");
+		System.out.println("File Readed");
 		
+		runner.buildPQ();
+		System.out.println("Priority Queue");
+		
+		runner.makeTree();
+		System.out.println("Tree Maded");
+		
+		runner.getCode("",runner.mainRoot);
+		System.out.println("Made Code Map");
+		
+		runner.writeFile("WarAndPeace.txt");
+		System.out.println("File Compressed");
+		
+		runner.readCompFile("compressed file");
+		System.out.println("File Decompressed");
+		
+		//1,811,745  bytes
+		//3,223,372  bytes
 	}
 }
