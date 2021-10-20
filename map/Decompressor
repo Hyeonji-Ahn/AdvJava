@@ -1,0 +1,61 @@
+package map;
+
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+
+public class Decompressor {
+	
+	public void decompress(String fileName) throws IOException {
+		
+		BufferedBitReader readFile = new BufferedBitReader(fileName+"_compressed.txt");
+		FileReader readMap = new FileReader(fileName+"_key.txt");
+		HashMap<String,Character> codeMap = new HashMap<String,Character>();
+		BufferedWriter out = new BufferedWriter(new FileWriter(fileName+"_decompressed.txt"));
+		
+		int read = -1;
+		
+		//reading key file
+		while ((read = readMap.read()) != -1) {
+			char c = (char) read;
+			readMap.read();//skip the \n between line
+			String temp = "";
+			while((read=readMap.read()) != '\n'){
+				temp += (char)read; //keep reading the file until he end of the code
+			}
+			codeMap.put(temp, c); //created Code map for decompressing the file
+			temp = "";
+		}
+		
+		System.out.println(codeMap);
+		
+		//decompress file
+		String currCode = "";
+		while (readFile.hasNext()){ 
+			//add the bit value to the current part of the code
+			if(readFile.readBit()) {
+				currCode += "1";
+			}else {
+				currCode += "0";
+			}
+			
+			//if the code same with the code in the map, write the value in the file.
+			if(codeMap.get(currCode) != null) { 
+				out.write(codeMap.get(currCode));
+				currCode = "";//reset the current code
+			}
+		}
+		readFile.close();
+		readMap.close();
+		out.close();
+	}
+
+	
+	public static void main(String args[]) throws IOException { //main method
+		Decompressor runner = new Decompressor();
+		runner.decompress("WarAndPeace");
+		System.out.println("done");
+	}
+}
