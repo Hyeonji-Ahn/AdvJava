@@ -154,8 +154,8 @@ public class HuffmanEncoding {
 		System.out.println("File Compressed");
 		
 		
-		runner.readCompFile("TEXTFILE");
-		System.out.println("File Decompressed");
+		//runner.readCompFile("TEXTFILE");
+		//System.out.println("File Decompressed");
 		
 		
 	}
