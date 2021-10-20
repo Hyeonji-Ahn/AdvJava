@@ -9,72 +9,83 @@ import java.util.HashMap;
 public class HuffmanEncoding {
 	
 	private PriorityQueue<Branch<Character>> pq = new PriorityQueue<Branch<Character>>();
-	private HashMap<Character, Integer> freqMap;
+	private HashMap<Character, Integer> freqMap = new HashMap<Character,Integer>();
 	private HashMap<Character,String> codeMap = new HashMap<Character,String>();
 	private Branch<Character> mainRoot;
 	
+	
+	//Read the original file
+	public void fileReader(String fileName) throws IOException {
+		
+		FileReader fr = new FileReader(fileName+".txt"); 
+		//read each letter and record frequency of each character.
+		int letter;
+		while ((letter = fr.read()) != -1) {
+			char letter_ch = (char)letter;
+			// record the frequency into a freqMap in character form
+			if(freqMap.get(letter_ch)==null) {
+				freqMap.put(letter_ch,1);    
+			}else {
+				freqMap.put(letter_ch,freqMap.get(letter_ch)+1);
+			}
+		}
+		fr.close();
+	}
+	
+	//build a Priority Queue base on the frequency of each letter.
+	//to build a tree later, every information is stored in a form of branch.
+	public void buildPQ() {
+		for(Character a: freqMap.keySet()) {
+			pq.add(new Branch<Character>(a), freqMap.get(a));
+		}
+	}		
+		
+	//create the binary tree
 	public void makeTree() {
 		while(pq.getSize()>1) {
-			int priority = pq.getPriority(0);
+			//get priority of the first thing in the queue and make it as a left leaf
+			int priority = pq.getPriority(0); 
 			Branch<Character> leftLeaf = pq.pop();
-			//System.out.print("left " + leftLeaf.info+" ");
-			//System.out.println(leftLeaf.isLeaf);
 			
+			//get priority of the second thing in the queue and make it as a left leaf
 			priority += pq.getPriority(0);
 			Branch<Character> rightLeaf =  pq.pop();
-			//System.out.print("right " +rightLeaf.info+" ");
-			//System.out.println(rightLeaf.isLeaf);
 			
+			//make root and attach it to a priority queue again with added priority.
 			Branch<Character> root = new Branch<Character>(rightLeaf,leftLeaf);
-			//System.out.print("root " + root.info+" ");
-			//System.out.println(root.isLeaf);
 			pq.add(root, priority);
 		}
 		mainRoot = pq.pop();
-		//System.out.println("**********");
 	}
 	
+	//get code from the binary tree
 	public void getCode(String code, Branch<Character> b) {
 		if(b.isLeaf) {
-			//System.out.println(b.info);
-			//System.out.println(code);
+			//if it reaches the leaf, put the code value in the map
 			codeMap.put(b.info, code);
 		}else {
-			//System.out.println(b.info);
-			//System.out.println(code);
+			//reiterate the method until it reaches the leaf.
 			getCode(code+"0",b.left);
 			getCode(code+"1",b.right);
 		}
 	}
 	
-	public void fileReader(String fileName) throws IOException {
-		freqMap = new HashMap<Character,Integer>();
-
-		FileReader fr = new FileReader(fileName); 
-		int letter;
-		while ((letter = fr.read()) != -1) {
-			char letter_ch = (char)letter;
-            if(freqMap.get(letter_ch)==null) {
-            	freqMap.put(letter_ch,1);
-            }else {
-            	freqMap.put(letter_ch,freqMap.get(letter_ch)+1);
-            }
-        }
-	}
-	
-	public void buildPQ() {
-		for(Character a: freqMap.keySet()) {
-			pq.add(new Branch<Character>(a), freqMap.get(a));
-		}
-	}
-	
+	//compressing a file
 	public void writeFile(String FileName) throws IOException {
-		FileReader fr = new FileReader(FileName); 
-		BufferedBitWriter write = new BufferedBitWriter("compressed file");
+		FileReader fr = new FileReader(FileName+".txt"); 
+		//compressed file
+		BufferedBitWriter write = new BufferedBitWriter(FileName+"_compressed.txt");
+		//key file for decompressing
+		BufferedWriter out = new BufferedWriter(new FileWriter(FileName+"_key.txt"));
+		
+		// for each letter in the file, compress it into code and 
+		//write in a compressed file in new form of character.
 		int letter;
 		while ((letter = fr.read()) != -1) {
 			String code =codeMap.get(((char)letter));
+			
 			while(code.length()>0) {
+				//write code into a compressed file.
 				if(code.charAt(0)=='0') {
 					write.writeBit(false);
 				}else {
@@ -84,12 +95,23 @@ public class HuffmanEncoding {
 			}
 		}
 		
+		//write a file for a code map in a separate file
+		for(char a: codeMap.keySet()){
+			out.write(a);
+			out.newLine();
+			out.write(codeMap.get(a));
+			out.newLine();
+		}
+		
+		System.out.println(codeMap);
+		out.close();
 		write.close();
+		fr.close();
 	}
 	
 	public void readCompFile(String fileName) throws IOException {
-		BufferedBitReader read = new BufferedBitReader(fileName);
-		BufferedWriter out = new BufferedWriter(new FileWriter("decompressed.txt"));
+		BufferedBitReader read = new BufferedBitReader(fileName+"_compressed.txt");
+		BufferedWriter out = new BufferedWriter(new FileWriter(fileName+"_decompressed_inmain.txt"));
 		String currCode = "";
 		while (read.hasNext()){ 
 			boolean bit = read.readBit(); 
@@ -109,30 +131,32 @@ public class HuffmanEncoding {
 		}
 		read.close();
 		out.close();
+		System.out.println(codeMap);
 	}
 	
 	
 	public static void main(String[] args) throws IOException {
 		HuffmanEncoding runner = new HuffmanEncoding();
-		runner.fileReader("WarAndPeace.txt");
-		System.out.println("File Readed");
+		//read file
+		runner.fileReader("TEXTFILE");
 		
+		//build Priority Queue
 		runner.buildPQ();
-		System.out.println("Priority Queue");
 		
+		//make tree according to the priority queue
 		runner.makeTree();
-		System.out.println("Tree Maded");
 		
+		//create code from the binary tree
 		runner.getCode("",runner.mainRoot);
-		System.out.println("Made Code Map");
 		
-		runner.writeFile("WarAndPeace.txt");
+		//write the compressed file base on the code
+		runner.writeFile("TEXTFILE");
 		System.out.println("File Compressed");
 		
-		runner.readCompFile("compressed file");
+		
+		runner.readCompFile("TEXTFILE");
 		System.out.println("File Decompressed");
 		
-		//1,811,745  bytes
-		//3,223,372  bytes
+		
 	}
 }
