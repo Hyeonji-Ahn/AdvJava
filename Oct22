@@ -1,0 +1,102 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class Oct22 {
+	//Take two 2d arrays of integers as parameters. 
+	//Assume these two matrices have the same dimensions.
+	//Sum the two matrices, then return how many rows and columns consist of only 0's. 
+	public int zeros(int[][] first, int[][] second) {
+		int zero = 0;
+		int[][] sums = new int [first.length][first[0].length];
+		for(int i=0; i<first.length; i++) {
+			for(int j=0; j<first[0].length; j++) {
+				System.out.print(first[i][j]+second[i][j] +" ");
+				sums[i][j] = first[i][j]+second[i][j];
+			}
+			System.out.println();
+		}
+		
+		/*
+		int row_sum = 0;
+		int colunm_sum = 0;
+		for(int i=0; i<sums.length; i++) {
+			for(int j=0; j<sums[0].length; j++) {
+				row_sum += 
+			}
+		}
+		*/
+		
+		
+		for(int i=0; i<first.length; i++) {
+			int sum_row = 0;
+			for(int j=0; j<first[0].length; j++) {
+				sum_row += first[i][j]+second[i][j];
+			}
+			System.out.println(i+"row sum is"+sum_row);
+			if(sum_row == 0) {
+				zero++;
+			}else {
+				sum_row = 0;
+			}
+		}
+		for(int i=0; i<first[0].length; i++) {
+			int sum_column = 0;
+			for(int j=0; j<first.length; j++) {
+				sum_column += first[j][i]+second[j][i];
+			}
+			System.out.println(i+"column sum is "+sum_column);
+			if(sum_column == 0) {
+				zero++;
+			}else {
+				sum_column = 0;
+			}
+		}
+		
+		return zero;
+	}
+	
+	//Take a 1d array of booleans as parameter. 
+	//Any false in the array is "contagious". 
+	//For each step, every false will infect any true next to it (to the left or right) and turn it 
+	//into a false. Then, this process will repeat. You should return how many steps it will take until 
+	//every element in the array is false. If this will never happen, return -1. 
+	 
+
+	//For example, the parameter [true, true, false, true, false, false, true] would return 2, 
+	//because after 1 step the array would be [true, false, false, false, false, false, false], 
+	//and on the second step it would be entirely falses. 
+	
+	public int contagious(boolean[] cont) {
+		int step  = 0;
+		if(Arrays.toString(cont).contains("true")){
+			for(int i=1; i<cont.length-1; i++) {
+				if(cont[i] == false) {
+					cont[i-1]=false;
+					cont[i+1]=false;
+					flag = true;
+				}
+			}
+			if(flag) {
+				step++;
+			}
+			System.out.println(Arrays.toString(cont));
+		}
+		return s;
+	}
+	
+	public static void main(String[] args) {
+		Oct22 runner = new Oct22();
+		int[][] first = {{5, 3, -1}, {-2, 4, 0}};
+		int[][] second = {{3, -3, 6}, {2, -4, 0}};
+		int [][]arr= {{5, 3, -1},{-2,4,0},{2,-4,0}, {2,-4,0}, {2,-4,0}, {2,-4,0}, {2,-4,0}, {2,-4,0}, {5, 3, -1}, {5, 3, -1},{-2,4,0},{-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {5, 3, -1}, {5, 3, -1},{-2,4,0},{-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {5, 3, -1}, {5, 3, -1},{-2,4,0},{-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {5, 3, -1} };
+
+		int [][]arr2= {{3, -3, 6},{2, -4, 0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {3, -3, 6}, {3, -3, 6}, {5, 3, -1},{-2,4,0},{-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {5, 3, -1}, {5, 3, -1},{-2,4,0},{-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {5, 3, -1}, {5, 3, -1},{-2,4,0},{-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {-2,4,0}, {5, 3, -1}};
+
+
+		boolean[] cont = {true, true, false, true, false, false, true,true,true,true,false, false, true,true,true,true};
+		System.out.println(runner.zeros( arr, arr2));
+		//System.out.println(runner.contagious(cont));
+		
+	}
+
+}
