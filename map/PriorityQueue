@@ -23,13 +23,15 @@ public class PriorityQueue<E> {
 		return queue_str;
 	}
 	
-	//add
+	//add new node into the priority queue
 	public void add(E info, int priority) {
 		Node newNode = new Node(info, priority);
 		if(queue.size()==0) {
+			//if the queue is empty
 			queue.add(newNode);
 		}else {
 			for(int i=0; i<queue.size(); i++) {
+				//go through the whole queue and if the priority is smaller, add the new node to the queue
 				if(queue.get(i).priority>newNode.priority) {
 					queue.add(i,newNode);
 					return;
@@ -40,25 +42,30 @@ public class PriorityQueue<E> {
 	}
 	
 	//pop
+	//remove the first data in the queue
 	public E pop() {
 		E data = queue.get(0).data;
 		queue.remove(0);
 		return data;
 	}
 	
+	//get priority of the queue
 	public int getPriority(int order) {
 		return queue.get(order).priority;
 	}
 	
+	//get the size of the queue
 	public int getSize() {
 		return queue.size();
 	}
 	
+	//get the data of the queue
 	public E get(int i) {
 		return queue.get(i).data;
 	}
 	
 	public static void main(String[] args) {
+		//for test
 		PriorityQueue<Character> list = new PriorityQueue<Character>();
 		list.add('C', 3);
 		list.add('D', 4);
