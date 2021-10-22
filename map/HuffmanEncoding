@@ -6,6 +6,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 public class HuffmanEncoding {
 	
 	private PriorityQueue<Branch<Character>> pq = new PriorityQueue<Branch<Character>>();
@@ -17,7 +20,7 @@ public class HuffmanEncoding {
 	//Read the original file
 	public void fileReader(String fileName) throws IOException {
 		
-		FileReader fr = new FileReader(fileName+".txt"); 
+		FileReader fr = new FileReader(fileName); 
 		//read each letter and record frequency of each character.
 		int letter;
 		while ((letter = fr.read()) != -1) {
@@ -72,7 +75,7 @@ public class HuffmanEncoding {
 	
 	//compressing a file
 	public void writeFile(String FileName) throws IOException {
-		FileReader fr = new FileReader(FileName+".txt"); 
+		FileReader fr = new FileReader(FileName); 
 		//compressed file
 		BufferedBitWriter write = new BufferedBitWriter(FileName+"_compressed.txt");
 		//key file for decompressing
@@ -103,42 +106,27 @@ public class HuffmanEncoding {
 			out.newLine();
 		}
 		
-		System.out.println(codeMap);
 		out.close();
 		write.close();
 		fr.close();
 	}
 	
-	public void readCompFile(String fileName) throws IOException {
-		BufferedBitReader read = new BufferedBitReader(fileName+"_compressed.txt");
-		BufferedWriter out = new BufferedWriter(new FileWriter(fileName+"_decompressed_inmain.txt"));
-		String currCode = "";
-		while (read.hasNext()){ 
-			boolean bit = read.readBit(); 
-			if(bit) {
-				currCode += "1";
-			}else {
-				currCode += "0";
-			}
-			
-			for(char a: codeMap.keySet()) {
-				if(codeMap.get(a).equals(currCode)) {
-					out.write(a);
-					currCode = "";
-					break;
-				}
-			}
-		}
-		read.close();
-		out.close();
-		System.out.println(codeMap);
-	}
-	
 	
 	public static void main(String[] args) throws IOException {
 		HuffmanEncoding runner = new HuffmanEncoding();
+		
+		//file chooser
+		JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                "text file", "txt"); //only text file
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showOpenDialog(null);
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+            System.out.println("You opened this file: " + chooser.getSelectedFile().getName());
+        }
+   
 		//read file
-		runner.fileReader("TEXTFILE");
+		runner.fileReader(chooser.getSelectedFile().getName());
 		
 		//build Priority Queue
 		runner.buildPQ();
@@ -150,13 +138,8 @@ public class HuffmanEncoding {
 		runner.getCode("",runner.mainRoot);
 		
 		//write the compressed file base on the code
-		runner.writeFile("TEXTFILE");
+		runner.writeFile(chooser.getSelectedFile().getName());
 		System.out.println("File Compressed");
-		
-		
-		//runner.readCompFile("TEXTFILE");
-		//System.out.println("File Decompressed");
-		
-		
+		return;
 	}
 }
