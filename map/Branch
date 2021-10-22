@@ -1,18 +1,19 @@
 package map;
 
 public class Branch<E> {
-	
-		E info;
-		Branch<E> right, left;
-		boolean isLeaf;
+		E info; //information of the branch
+		Branch<E> right, left; //information of the left and right child branch
+		boolean isLeaf; //check if the branch is a leaf
 		
+		//if the branch is not a leaf
 		public Branch(Branch<E> right, Branch<E> left) {
-			this.info = null;
+			this.info = null; 
 			this.right = right;
 			this.left = left;
 			this.isLeaf = false;
 		}
 		
+		//if a branch is a leaf
 		public Branch(E info) {
 			this.info = info;
 			this.right = null;
