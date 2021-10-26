@@ -52,7 +52,12 @@ public class Oct22 {
 				}
 				
 			}
-			return Math.max((int)((double) (contarr[contarr.length - 1].length()/6)/2), length);
+			if(length == a.length) {
+				return -1;
+			}else {
+				return Math.max((int)((double) (contarr[contarr.length - 1].length()/6)/2), length);
+			}
+			
 		}
 		
 		return (int) ((double) (contarr[contarr.length - 1].length()/6)/2);
