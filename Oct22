@@ -41,7 +41,21 @@ public class Oct22 {
 		String[] contarr = Arrays.toString(a).substring(1, Arrays.toString(a).length() - 1).split("false, ");
 		contarr[contarr.length - 1] = contarr[contarr.length - 1].replace("false", "");
 		Arrays.sort(contarr);
-		return (int) Math.ceil((double) (contarr[contarr.length - 1].length()/6)/2);
+		
+		if(a[a.length-1]) {
+			int length=0;
+			for(int i=a.length-1; i>=0; i--) {
+				if(a[i]) {
+					length++;
+				}else {
+					break;
+				}
+				
+			}
+			return Math.max((int)((double) (contarr[contarr.length - 1].length()/6)/2), length);
+		}
+		
+		return (int) ((double) (contarr[contarr.length - 1].length()/6)/2);
 	}
 	
 	
