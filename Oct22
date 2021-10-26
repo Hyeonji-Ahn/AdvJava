@@ -38,6 +38,10 @@ public class Oct22 {
 	
 	
 	public int contagious(boolean[] a) {
+		boolean[] falses = new boolean[a.length];
+		if(a == falses) {
+			return 0;
+		}
 		String[] contarr = Arrays.toString(a).substring(1, Arrays.toString(a).length() - 1).split("false, ");
 		contarr[contarr.length - 1] = contarr[contarr.length - 1].replace("false", "");
 		Arrays.sort(contarr);
