@@ -1,0 +1,140 @@
+package graphic;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
+
+public class ChatBot {
+	private final int WIDTH = 600, HEIGHT = 600;
+	private final int DISPLAY_HEIGHT =  (int) (HEIGHT * 0.55);
+	private final int TYPE_HEIGHT =  (int) (HEIGHT * 0.3);
+	private String chatLog = "";
+	private String command = "====command==== \n !command : see commands \n !teachAI : add possible response of the AI \n !game : play rock scissor paper";
+	private ArrayList<String> chatList = new ArrayList<String>();
+	private boolean teachAI, game;
+	
+	public ChatBot() {
+		JPanel textPanel = new JPanel();
+		BoxLayout boxlayout = new BoxLayout(textPanel, BoxLayout.Y_AXIS);
+		textPanel.setLayout(boxlayout);
+		textPanel.setBorder(BorderFactory.createTitledBorder("Chat Bot 1.0"));
+		JTextArea displayarea = new JTextArea();
+		displayarea.setEditable(false);
+		chatLog += command + "\n";
+		displayarea.setText(chatLog);
+		JTextArea typearea = new JTextArea();
+		typearea.setEditable(true);
+		
+		
+		JScrollPane scroll = new JScrollPane (displayarea);
+		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		scroll.setPreferredSize(new Dimension (WIDTH, DISPLAY_HEIGHT));
+		typearea.setPreferredSize(new Dimension (WIDTH, TYPE_HEIGHT));
+		textPanel.add(scroll);
+		textPanel.add(typearea);
+		
+		chatList.add("Hello!");
+		chatList.add("That is interesting");
+		chatList.add("What?");
+		chatList.add("Nice!");
+		
+		
+		
+		JButton button = new JButton("Send");
+		button.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String text = typearea.getText().replaceAll("\n", "");
+				chatLog += "User: "+text+"\n";
+				
+				
+				if(text.contains("!command")) {
+					chatLog += command;
+				}else if(text.contains("!teachAI")) {
+					chatLog += "AI: What do you want to teach bot?";
+					teachAI = true;
+				}else if(teachAI){
+					chatLog += "AI: I learned ' "+text+ " '";
+					chatList.add(typearea.getText());
+					teachAI = false;
+				}else if(text.contains("!game")){
+					chatLog += "AI: Let's play rock scissor paper! type your dicision!!";
+					game = true;
+				}else if(game){
+					int computerChoice = (int) (Math.random()*3);
+					if(text.equals("rock") || text.equals("paper") || text.equals("scissor")) {
+						if (computerChoice == 0) {
+							chatLog += "AI: You win!";
+						}else if(computerChoice == 1){
+							chatLog += "AI: You lose";
+						}else {
+							chatLog += "AI: Tie";
+						}
+						game = false;
+					}else {
+						chatLog += "AI: That is not a valid choice! Type in your choice";
+					}
+				}else if(text.charAt(0)=='!'){
+					chatLog += "AI: "+text+" is not supported yet!";
+				}else {
+					chatLog += "AI: "+chatList.get((int) (Math.random()*chatList.size()));
+				}
+				chatLog+= "\n";
+				displayarea.setText(chatLog);
+				typearea.setText("");
+			}
+		});
+		
+		JPanel mainContainer = new JPanel();
+		mainContainer.setLayout(new BorderLayout(100,50));
+		mainContainer.add(textPanel,BorderLayout.PAGE_START);
+		mainContainer.add(button,BorderLayout.PAGE_END);
+		typearea.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+					button.doClick();
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+			}
+			
+		});
+		
+		JFrame frame = new JFrame();
+		frame.setSize(WIDTH, HEIGHT);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(mainContainer);
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(false);
+		frame.setVisible(true);
+		mainContainer.setFocusable(true);
+		
+	}
+
+
+	public static void main(String[] args) {
+		new ChatBot();
+	}
+}
