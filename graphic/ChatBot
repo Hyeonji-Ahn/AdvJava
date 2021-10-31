@@ -21,7 +21,7 @@ public class ChatBot {
 	private final int WIDTH = 600, HEIGHT = 600;
 	private final int DISPLAY_HEIGHT =  (int) (HEIGHT * 0.55);
 	private final int TYPE_HEIGHT =  (int) (HEIGHT * 0.3);
-	private String chatLog = "";
+	private String chatLog = "\n";
 	private String command = "====command==== \n !command : see commands \n !teachAI : add possible response of the AI \n !game : play rock scissor paper";
 	private ArrayList<String> chatList = new ArrayList<String>();
 	private boolean teachAI, game;
@@ -50,6 +50,10 @@ public class ChatBot {
 		chatList.add("That is interesting");
 		chatList.add("What?");
 		chatList.add("Nice!");
+		chatList.add("Very good!");
+		chatList.add("That is alright");
+		chatList.add("I don't know about that");
+		
 		
 		
 		
@@ -61,8 +65,9 @@ public class ChatBot {
 				String text = typearea.getText().replaceAll("\n", "");
 				chatLog += "User: "+text+"\n";
 				
-				
-				if(text.contains("!command")) {
+				if(text.equals("")) {
+					chatLog += "AI: Say SOMETHING";
+				}else if(text.contains("!command")) {
 					chatLog += command;
 				}else if(text.contains("!teachAI")) {
 					chatLog += "AI: What do you want to teach bot?";
