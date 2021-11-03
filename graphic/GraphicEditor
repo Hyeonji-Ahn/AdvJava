@@ -1,0 +1,167 @@
+package graphic;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+
+public class GraphicEditor {
+	
+	private final int WIDTH = 1000, HEIGHT = 700;
+	private ArrayList<Shape> shapes = new ArrayList<Shape>();
+	private final Dimension b_cont_size = new Dimension(WIDTH, (int) (HEIGHT*0.05));
+	private final Dimension val_size = new Dimension(60, 20);
+	private boolean rec,circle,line,color,text,delete;
+	
+	public GraphicEditor() {
+		
+		JPanel mainContainer = new JPanel();
+		BoxLayout boxlayout = new BoxLayout(mainContainer, BoxLayout.Y_AXIS);
+		mainContainer.setLayout(boxlayout);
+		
+		JPanel shape_b_cont = new JPanel();
+		JPanel shape_b_cont2 = new JPanel();
+		JPanel shape_b_cont3 = new JPanel();
+		shape_b_cont.setPreferredSize(b_cont_size);
+		shape_b_cont2.setPreferredSize(b_cont_size);
+		shape_b_cont3.setPreferredSize(b_cont_size);
+		
+		mainContainer.add(shape_b_cont);
+		mainContainer.add(shape_b_cont2);
+		mainContainer.add(shape_b_cont3);
+		
+		
+		JButton rec_b = new JButton("Rectangle");
+		JButton circle_b = new JButton("Circle");
+		JButton line_b = new JButton("Line");
+		JButton color_b = new JButton("Choose Color");
+		JButton text_b = new JButton("Text");
+		JButton delete_b = new JButton("Delete");
+		
+		rec_b.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rec = true;
+			}
+		});
+		
+		
+		
+		shape_b_cont.add(rec_b);
+		shape_b_cont.add(circle_b);
+		shape_b_cont.add(line_b);
+		shape_b_cont2.add(color_b);
+		shape_b_cont2.add(text_b);
+		shape_b_cont3.add(delete_b);
+		
+		JTextArea LineWidth = new JTextArea("Line Width:");
+		LineWidth.setEditable(false);
+		
+		JTextArea LineWidth_val = new JTextArea();
+		LineWidth_val.setEditable(true);
+		LineWidth_val.setPreferredSize(val_size);
+		
+		JTextArea TextSize = new JTextArea("Text Size:");
+		TextSize.setEditable(false);
+		
+		JTextArea TextSize_val = new JTextArea();
+		TextSize_val.setEditable(true);
+		TextSize_val.setPreferredSize(val_size);
+		
+		JTextArea TextContent = new JTextArea("Text Content:");
+		TextContent.setEditable(false);
+		
+		JTextArea TextContent_val = new JTextArea();
+		TextContent_val.setEditable(true);
+		TextContent_val.setPreferredSize(val_size);
+		
+		shape_b_cont.add(LineWidth);
+		shape_b_cont.add(LineWidth_val);
+		shape_b_cont2.add(TextSize);
+		shape_b_cont2.add(TextSize_val);
+		shape_b_cont2.add(TextContent);
+		shape_b_cont2.add(TextContent_val);
+		
+		JPanel canvas = new JPanel() {
+			public void paint(Graphics g) {
+				super.paint(g);
+				
+				for(int i=0; i<shapes.size(); i++) {
+					shapes.get(i).draw(g);
+				}
+			}
+		};
+		canvas.setPreferredSize(new Dimension(WIDTH, (int) (HEIGHT*0.7)));
+		canvas.setBackground(Color.white);
+		mainContainer.add(canvas);
+		
+		canvas.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if(rec) {
+					shapes.add(new Rectangle(e.getX(),e.getY(),100,100,Color.MAGENTA));
+					System.out.println("rec added");
+				}
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+			
+		});
+		JFrame frame = new JFrame();
+		frame.setSize(WIDTH, HEIGHT);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(mainContainer);
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(true);
+		frame.setVisible(true);
+		mainContainer.setFocusable(true);
+		mainContainer.setBorder(BorderFactory.createTitledBorder("Graphic Editor"));
+		run();
+	}
+	
+	public void run() {
+		while (true) {
+			g.repaint();
+			
+			try {
+				Thread.sleep(10);
+			} catch (Exception ex) {}
+		}
+	}
+	
+	public static void main(String[] args) {
+		new GraphicEditor();
+		
+		
+	}
+
+}
