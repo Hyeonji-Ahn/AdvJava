@@ -7,29 +7,55 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JColorChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
 public class GraphicEditor {
 	
-	private final int WIDTH = 1000, HEIGHT = 700;
-	private ArrayList<Shape> shapes = new ArrayList<Shape>();
-	private final Dimension b_cont_size = new Dimension(WIDTH, (int) (HEIGHT*0.05));
-	private final Dimension val_size = new Dimension(60, 20);
-	private boolean rec,circle,line,color,text,delete;
+	private final int WIDTH = 700, HEIGHT = 700; //size of window
+	private ArrayList<Shape> shapes = new ArrayList<Shape>(); //list of shapes
+	private boolean addShape; //boolean for checking user added the shape
+	private boolean moveShape; //boolean for checking user moved the shape
+	private final Dimension b_cont_size = new Dimension(WIDTH, (int) (HEIGHT*0.05)); //size of the button container
+	private final Dimension val_size = new Dimension(60, 20); //size of textbox
+	private boolean[] button_pressed= new boolean[10]; //boolean for checking if the button pressed
+	//rec,circle,line,text,delete,move,front,pen,color drop
+	public JFrame frame = new JFrame(); //frame
+	private Color sel_c = Color.black; //Selected color
+	private int x1, y1,height1, width1; //initial xy coordinate
+	private int sel_shape; //index of selected shape
+	private int screen_shot=1; //number of screen shot taken.
+	private ArrayList<ArrayList<Shape>> undo_list = new ArrayList<ArrayList<Shape>>(); 
+	//list of previous shape list for undo function
+	private ArrayList<int[]> newpoints = new ArrayList<int[]>(); 
+	//list of points for moving pen shape
 	
 	public GraphicEditor() {
 		
-		JPanel mainContainer = new JPanel();
+		//adding initial array to prevent index out of bound error
+		undo_list.add(new ArrayList<Shape>());
+		shapes.add(new Rectangle(-1,-1,1,1,sel_c));
+		
+		//container for whole panels
+		JPanel mainContainer = new JPanel(); 
 		BoxLayout boxlayout = new BoxLayout(mainContainer, BoxLayout.Y_AXIS);
 		mainContainer.setLayout(boxlayout);
 		
+		//containers for each row of button
 		JPanel shape_b_cont = new JPanel();
 		JPanel shape_b_cont2 = new JPanel();
 		JPanel shape_b_cont3 = new JPanel();
@@ -37,55 +63,272 @@ public class GraphicEditor {
 		shape_b_cont2.setPreferredSize(b_cont_size);
 		shape_b_cont3.setPreferredSize(b_cont_size);
 		
+		//add button to the main container
 		mainContainer.add(shape_b_cont);
 		mainContainer.add(shape_b_cont2);
 		mainContainer.add(shape_b_cont3);
 		
+		//main canvas for drawing
+		JPanel canvas = new JPanel() {
+			public void paint(Graphics g) {
+				super.paint(g);
+				
+				//draw the shape from the beginning of the list
+				for(int i=0; i<shapes.size(); i++) {
+					shapes.get(i).draw(g);
+				}
+			}
+		};
 		
+		canvas.setPreferredSize(new Dimension(WIDTH, (int) (HEIGHT*0.7)));
+		canvas.setBackground(Color.white);
+		mainContainer.add(canvas);
+		
+		//button for each functions. If the button is pressed, change the mode of drawing by checking array of boolean.
 		JButton rec_b = new JButton("Rectangle");
-		JButton circle_b = new JButton("Circle");
-		JButton line_b = new JButton("Line");
-		JButton color_b = new JButton("Choose Color");
-		JButton text_b = new JButton("Text");
-		JButton delete_b = new JButton("Delete");
-		
 		rec_b.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				rec = true;
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[0] = true;
 			}
 		});
 		
+		JButton circle_b = new JButton("Circle");
+		circle_b.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[1] = true;
+			}
+		});
 		
+		//button for line drawing function
+		JButton line_b = new JButton("Line");
+		line_b.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[2] = true;
+			}
+		});
 		
+		//button for color chooser.
+		JButton color_b = new JButton("Choose Color");
+		color_b.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//if the button is pressed, the color chooser is showing up
+				JColorChooser colorChooser = new JColorChooser();
+				sel_c = JColorChooser.showDialog(null, "Pick a Color", sel_c);
+				color_b.setForeground(sel_c);
+			}
+			
+		});
+		
+		//text creating button
+		JButton text_b = new JButton("Text");
+		text_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[3] = true;
+			}
+			
+		});
+		
+		//delete button
+		JButton delete_b = new JButton("Delete");
+		delete_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[4] = true;
+			}
+		});
+		
+		//resetting all the canvas, and deleting all the memory in undo.
+		JButton reset_b = new JButton("Reset");
+		reset_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ArrayList<Shape> s = new ArrayList<Shape>();
+				shapes.clear();
+				undo_list.clear();
+				//adding initial array to prevent index out of bound error
+				undo_list.add(s);
+				shapes.add(new Rectangle(-1,-1,1,1,sel_c));
+			}
+			
+		});
+		
+		//move shapes
+		JButton move_b = new JButton("Move");
+		move_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[5] = true;
+			}
+			
+		});
+		
+		//move the shape to the front
+		JButton front_b = new JButton("Front");
+		front_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[6] = true;
+			}
+			
+		});
+		
+		//move the shape to the back
+		JButton back_b = new JButton("Back");
+		back_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[7] = true;
+			}
+			
+		});
+		
+		//pen function that can draw freely on the canvas
+		JButton pen_b = new JButton("Pen");
+		pen_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[8] = true;
+			}
+			
+		});
+		
+		//undo fuction.
+		JButton undo_b = new JButton("Undo");
+		undo_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//if the button is pressed and there is something done to the canvas, return the canvas status to one step previous.
+				if(undo_list.size()!=1) {
+					shapes = undo_list.get(undo_list.size()-1);
+					//if there is one or more thing done to the canvas, erase the current status.
+					//checking the size of the undo list to prevent there is nothing in the list
+					if(undo_list.size() > 1) {
+						undo_list.remove(undo_list.size()-1);
+						//TODO
+						System.out.println(undo_list);
+					} 
+				}
+				
+			}
+			
+		});
+		
+		//save the current status of canvas.
+		JButton save_b = new JButton("Save");
+		save_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//create image that get screen shot of currrent canvas.
+				BufferedImage image = new BufferedImage(canvas.getWidth(),canvas.getHeight(), BufferedImage.TYPE_INT_RGB);
+				Graphics g2 = image.getGraphics();
+				 
+		        canvas.print(g2);
+		 
+		        g2.dispose();
+		 
+		        try{
+		        	//name of the screenshot changes so that it does not overwrite.
+		        ImageIO.write(image, "jpeg", new File("SCREEN_SHOT"+screen_shot+".jpeg"));
+		        }catch(IOException e1){
+		        	 e1.printStackTrace();
+		        }
+		        
+		        screen_shot++;
+			}
+			
+		});
+		//button to select color of the clicked shape.
+		JButton Color_drop = new JButton("Color Drop");
+		Color_drop.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i=0; i<button_pressed.length; i++) {
+					button_pressed[i]=false;
+				}
+				button_pressed[9] = true;
+			}
+			
+		});
+		
+		//add all the button to the corresponding containers.
 		shape_b_cont.add(rec_b);
 		shape_b_cont.add(circle_b);
 		shape_b_cont.add(line_b);
-		shape_b_cont2.add(color_b);
+		shape_b_cont.add(color_b);
+		shape_b_cont2.add(Color_drop);
+		shape_b_cont2.add(pen_b);
 		shape_b_cont2.add(text_b);
 		shape_b_cont3.add(delete_b);
+		shape_b_cont3.add(move_b);
+		shape_b_cont3.add(front_b);
+		shape_b_cont3.add(back_b);
+		shape_b_cont3.add(save_b);
+		shape_b_cont3.add(reset_b);
+		shape_b_cont3.add(undo_b);
 		
-		JTextArea LineWidth = new JTextArea("Line Width:");
-		LineWidth.setEditable(false);
+		//Text box for width of pen or line
+		JLabel LineWidth = new JLabel("Line / Pen Width:");
 		
-		JTextArea LineWidth_val = new JTextArea();
+		JTextArea LineWidth_val = new JTextArea("10");
 		LineWidth_val.setEditable(true);
 		LineWidth_val.setPreferredSize(val_size);
 		
-		JTextArea TextSize = new JTextArea("Text Size:");
-		TextSize.setEditable(false);
+		//text box for size of the text.
+		JLabel TextSize = new JLabel("Text Size:");
 		
-		JTextArea TextSize_val = new JTextArea();
+		JTextArea TextSize_val = new JTextArea("25");
 		TextSize_val.setEditable(true);
 		TextSize_val.setPreferredSize(val_size);
 		
-		JTextArea TextContent = new JTextArea("Text Content:");
-		TextContent.setEditable(false);
+		//text box for the content of the text.
+		JLabel TextContent = new JLabel("Text Content:");
 		
-		JTextArea TextContent_val = new JTextArea();
+		JTextArea TextContent_val = new JTextArea("content");
 		TextContent_val.setEditable(true);
-		TextContent_val.setPreferredSize(val_size);
-		
+
+		//add all the text boxes to the corresponding containers.
 		shape_b_cont.add(LineWidth);
 		shape_b_cont.add(LineWidth_val);
 		shape_b_cont2.add(TextSize);
@@ -93,38 +336,252 @@ public class GraphicEditor {
 		shape_b_cont2.add(TextContent);
 		shape_b_cont2.add(TextContent_val);
 		
-		JPanel canvas = new JPanel() {
-			public void paint(Graphics g) {
-				super.paint(g);
-				
-				for(int i=0; i<shapes.size(); i++) {
-					shapes.get(i).draw(g);
+		
+		canvas.addMouseMotionListener(new MouseMotionListener() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				if(addShape) {
+					//if the user added the shape, resize the the shape just added
+					//accordingly to the mouse's movement.
+					shapes.get(shapes.size()-1).resize(x1, y1, e.getX(), e.getY());
+				}
+				if(moveShape) {
+					//if the user moved the shape, move the shape according to the mouse's movement
+					if(shapes.get(sel_shape).getPoints()!= null) {
+						shapes.get(sel_shape).move(0,0,e.getX(),e.getY(),0,0,newpoints);
+					}else {
+						shapes.get(sel_shape).move(x1,y1,e.getX(), e.getY(),width1,height1,null);
+					}
 				}
 			}
-		};
-		canvas.setPreferredSize(new Dimension(WIDTH, (int) (HEIGHT*0.7)));
-		canvas.setBackground(Color.white);
-		mainContainer.add(canvas);
+
+			@Override
+			public void mouseMoved(MouseEvent e) {
+			}
+		});
 		
 		canvas.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if(rec) {
-					shapes.add(new Rectangle(e.getX(),e.getY(),100,100,Color.MAGENTA));
-					System.out.println("rec added");
-				}
 			}
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				// TODO Auto-generated method stub
+				if(button_pressed[0]) { //add rectangle
+					//initial point of the rectangle
+					x1 = e.getX(); 
+					y1 = e.getY();
+					//selected color
+					Color color = sel_c;
+					//add rectangle with no size but start at the initial point
+					shapes.add(new Rectangle(e.getX(),e.getY(),0,0,color));
+					//resize the rectangle by allowing the mouse movement listener.
+					addShape = true;
+					//make a copy of the shape list for undo function.
+					ArrayList<Shape> listcopy = new ArrayList<Shape>();
+					
+					//make a copy of every shape and add to the list
+					for(int i=0; i<shapes.size(); i++) {
+						listcopy.add(shapes.get(i).copy());
+					}
+					//add current shape list to the undo_list that has memory of the whole process.
+					undo_list.add(listcopy);
+					
+				}else if(button_pressed[1]) { //add circle
+					//initial point (center point)
+					x1 = e.getX();
+					y1 = e.getY();
+					Color color = sel_c;
+					shapes.add(new Circle(e.getX(),e.getY(),0,0,color));
+					//resize the circle by allowing the mouse movement listener.
+					addShape = true;
+					
+					//make a copy of the shape list for undo function.
+					ArrayList<Shape> listcopy = new ArrayList<Shape>();
+					
+					for(int i=0; i<shapes.size(); i++) {
+						listcopy.add(shapes.get(i).copy());
+					}
+					undo_list.add(listcopy);
+					
+				}else if(button_pressed[2]) { //draw line
+					//initial point (top left of the line)
+					x1 = e.getX();
+					y1 = e.getY();
+					
+					//if the user input is too big, show the error message.
+					if(LineWidth_val.getText().length()>5) {
+						JOptionPane.showMessageDialog(frame, "Please Enter Valid Number",
+					               "Graphic Editor", JOptionPane.ERROR_MESSAGE);
+						//reset the line width value
+						LineWidth_val.setText("10");
+					}else {
+						//if the line width is in reasonable range, add the line and set it adjustable.
+						shapes.add(new Line(e.getX(),e.getY(),e.getX(),e.getY(),sel_c,Integer.parseInt(LineWidth_val.getText())));
+						addShape = true;
+						
+						//make a copy of the shape list for undo function.
+						ArrayList<Shape> listcopy = new ArrayList<Shape>();
+						for(int i=0; i<shapes.size(); i++) {
+							listcopy.add(shapes.get(i).copy());
+						}
+						undo_list.add(listcopy);
+					}
+					
 				
+					
+					
+				}else if(button_pressed[3]) { //add text
+					
+					shapes.add(new Text(e.getX(),e.getY(),Integer.parseInt(TextSize_val.getText()),sel_c,TextContent_val.getText()));
+					
+					//make a copy of the shape list for undo function.
+					ArrayList<Shape> listcopy = new ArrayList<Shape>();
+					
+					for(int i=0; i<shapes.size(); i++) {
+						listcopy.add(shapes.get(i).copy());
+					}
+					undo_list.add(listcopy);
+					//TODO
+					System.out.println(undo_list);
+					
+				}else if(button_pressed[4]) { //delete shape
+					
+					for(int i=shapes.size()-1; i>0; i--) {
+						//going the shape list from back to delete shape in the front.
+						if(shapes.get(i).isOn(e.getX(), e.getY())){
+							//make a copy of the shape list for undo function first before deleting anything.
+							ArrayList<Shape> listcopy = new ArrayList<Shape>();
+							
+							for(int j=0; j<shapes.size(); j++) {
+								listcopy.add(shapes.get(j).copy());
+							}
+							undo_list.add(listcopy);
+							shapes.remove(i);
+							break;
+						}
+					}
+					
+				}else if(button_pressed[5]) { //move
+					for(int i=shapes.size()-1; i>0; i--) {
+						if(shapes.get(i).isOn(e.getX(), e.getY())){
+							if(shapes.get(i).getPoints() != null) {
+								sel_shape = i;
+								
+								ArrayList<int[]> points = shapes.get(i).getPoints();
+								for(int j=0; j<points.size(); j++) {
+									int[] newPoint = {points.get(i)[0]-e.getX(),points.get(i)[1]-e.getY()};
+									newpoints.add(newPoint);
+									moveShape = true;
+								}
+								
+							}else {
+								sel_shape = i;
+								
+								//move shape proportionally to the mouse's position.
+								x1 = shapes.get(i).x-e.getX();
+								y1 = shapes.get(i).y-e.getY();
+								width1 = shapes.get(i).width-e.getX();
+								height1 = shapes.get(i).height-e.getY();
+								
+								moveShape = true;
+								
+							}
+							//make a copy of the shape list for undo function
+							ArrayList<Shape> listcopy = new ArrayList<Shape>();
+							
+							for(int j=0; j<shapes.size(); j++) {
+								listcopy.add(shapes.get(j).copy());
+							}
+							undo_list.add(listcopy);
+							
+							//break the for loop after find what shape to move.
+							break;
+						}
+					}
+					
+					
+					
+				}else if(button_pressed[6]) { //front
+					int index=-1;
+					for(int i=0; i<shapes.size(); i++) {
+						if(shapes.get(i).isOn(e.getX(), e.getY())){
+							index = i;
+							break;
+						}
+					}
+					if(index != -1) {
+						//if shape is selected, change the index of the shape to the end of the list.
+						Shape temp = shapes.get(index);
+						shapes.remove(index);
+						shapes.add(temp);
+						index = -1;
+					}
+					
+					//make a copy of the shape list for undo function
+					ArrayList<Shape> listcopy = new ArrayList<Shape>();
+					
+					for(int i=0; i<shapes.size(); i++) {
+						listcopy.add(shapes.get(i).copy());
+					}
+					undo_list.add(listcopy);
+					
+				}else if(button_pressed[7]) { //back
+					int index=-1;
+					for(int i=shapes.size()-1; i>0; i--) {
+						if(shapes.get(i).isOn(e.getX(), e.getY())){
+							index = i;
+							break;
+						}
+					}
+					//if the shape is selected, add the shape to the beginning of the list.
+					if(index != -1) {
+						Shape temp = shapes.get(index);
+						shapes.remove(index);
+						shapes.add(0, temp);
+						index = -1;
+					}
+					//make a copy of the shape list for undo function
+					ArrayList<Shape> listcopy = new ArrayList<Shape>();
+					
+					for(int i=0; i<shapes.size(); i++) {
+						listcopy.add(shapes.get(i).copy());
+					}
+					undo_list.add(listcopy);
+					
+				}else if(button_pressed[8]) { //pen
+					//initial position (start point of the line drawn by pen)
+					x1 = e.getX();
+					y1 = e.getY();
+					shapes.add(new Pen(new ArrayList<int[]>(),sel_c,Integer.parseInt(LineWidth_val.getText())));
+					addShape = true;
+					//make a copy of the shape list for undo function
+					ArrayList<Shape> listcopy = new ArrayList<Shape>();
+					
+					for(int i=0; i<shapes.size(); i++) {
+						listcopy.add(shapes.get(i).copy());
+					}
+					undo_list.add(listcopy);
+					//TODO
+					System.out.println(undo_list);
+				}else if(button_pressed[9]) { //Color drop
+					for(int i=0; i<shapes.size(); i++) {
+						if(shapes.get(i).isOn(e.getX(), e.getY())){
+							//change the selected color to the color of the paint
+							sel_c = shapes.get(i).c;
+							color_b.setForeground(sel_c);
+						}
+					}
+					//do not list to make copy for undo function because 
+					//there is no change in canvas itself.
+				}
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
+				//if the mouse is released, stop resizing or moving the shapes.
+				addShape = false;
+				moveShape = false;
 			}
 
 			@Override
@@ -136,7 +593,7 @@ public class GraphicEditor {
 			}
 			
 		});
-		JFrame frame = new JFrame();
+		//setting of the frame.
 		frame.setSize(WIDTH, HEIGHT);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.add(mainContainer);
@@ -150,7 +607,8 @@ public class GraphicEditor {
 	
 	public void run() {
 		while (true) {
-			g.repaint();
+			//repaint the canvas.
+			frame.getContentPane().repaint();
 			
 			try {
 				Thread.sleep(10);
@@ -160,8 +618,5 @@ public class GraphicEditor {
 	
 	public static void main(String[] args) {
 		new GraphicEditor();
-		
-		
 	}
-
 }
