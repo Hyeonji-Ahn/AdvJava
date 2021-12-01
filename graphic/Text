@@ -1,0 +1,46 @@
+package graphic;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.AffineTransform;
+
+public class Text extends Shape{
+	String msg;
+	Font f;
+
+	public Text(int x, int y, int w, Color c, String msg) {
+		super(x, y, w, -1, c);
+		this.msg = msg;
+	}
+
+	@Override
+	public Shape copy() {
+		return new Text(x,y,width,c,msg);
+	}
+
+	@Override
+	public void draw(Graphics g) {
+		g.setColor(c);
+		f = new Font( "SansSerif", Font.PLAIN, width );
+		g.setFont(f);
+		g.drawString(msg, x, y);
+	}
+
+	@Override
+	public boolean isOn(int mouse_x, int mouse_y) {
+		FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
+		int textWidth = (int)(f.getStringBounds(msg, frc).getWidth());
+		int textHeight = (int)(f.getStringBounds(msg, frc).getHeight());
+		//check weather the mouse is on the text.
+		//Have to be careful for x and y start point as the start point is left down corner
+		return (mouse_x>x && mouse_y>y-textHeight && x+textWidth>mouse_x && y>mouse_y);
+	}
+
+	@Override
+	public void resize(int x1, int y1, int x2, int y2) {
+		//do not need it as the text already has predetermined size.
+	}
+
+}
