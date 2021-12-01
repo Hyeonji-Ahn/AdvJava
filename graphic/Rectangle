@@ -1,0 +1,45 @@
+package graphic;
+
+import java.awt.Color;
+import java.awt.Graphics;
+
+public class Rectangle extends Shape{
+	public Rectangle(int x, int y, int w, int h, Color c) {
+		super(x, y, w, h, c);
+	}
+
+	@Override
+	public Shape copy() {
+		return new Rectangle(x,y,width,height,c);
+	}
+
+	@Override
+	public void draw(Graphics g) {
+		g.setColor(c);
+		g.fillRect(x, y, width, height);
+	}
+
+	@Override
+	public boolean isOn(int mouse_x, int mouse_y) {
+		return (mouse_x>x && mouse_y>y && x+width>mouse_x && y+height>mouse_y) ;
+	}
+
+	@Override
+	public void resize(int x1, int y1, int x2, int y2) {
+		if(x2<x1) {
+			int temp = x1;
+			x1 = x2;
+			x2 = temp;
+		}
+		if(y2<y1) {
+			int temp = y1;
+			y1 = y2;
+			y2 = temp;
+		}
+		x = x1;
+		y = y1;
+		width = x2-x1;
+		height = y2-y1;
+	}
+
+}
