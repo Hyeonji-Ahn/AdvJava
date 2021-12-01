@@ -1,0 +1,71 @@
+package graphic;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+
+public class Line extends Shape{
+	private int thick;
+	public Line(int x, int y, int w, int h, Color c, int thick) {
+		super(x, y, w, h, c);
+		this.thick = thick;
+	}
+
+	@Override
+	public Shape copy() {
+		return new Line(x,y,width,height,c,thick);
+	}
+
+	@Override
+	public void draw(Graphics g) {
+		 Graphics2D g2 = (Graphics2D) g;
+		 g2.setColor(c);
+         g2.setStroke(new BasicStroke(thick));
+         g2.draw(new Line2D.Float(x, y, width, height));
+	}
+
+	@Override
+	public boolean isOn(int mouse_x, int mouse_y) {
+		//gx -y +b = 0
+		if (x > width || y>height) {
+			int temp = x;
+			x =  width;
+			width = temp;
+			temp = y;
+			y = height;
+			height =temp;
+		}
+		
+		double g = (double)(height-y)/ (double)(width-x);
+		double b = g*-1*x+y;
+		double new_g = -1/g;
+		
+		if(x == width) {
+			if(y>=height) {
+				return Math.abs(mouse_x - x) <= thick / 2 && mouse_y <= y && mouse_y >= height;
+			}else {
+				return Math.abs(mouse_x - x) <= thick / 2 && mouse_y >= y && mouse_y <= height;
+			}
+		}
+		return Math.abs(g*mouse_x-mouse_y+b)/Math.sqrt(g*g+1)<=thick/2 && mouse_y >= new_g*(mouse_x-x)+y-(int)(thick*1.7) && mouse_y <= new_g*(mouse_x-width)+height+(int)(thick*1.7);
+	}
+
+	@Override
+	public void resize(int x1, int y1, int x2, int y2) {
+		x=x1;
+		y = y1;
+		width = x2;
+		height = y2;
+	}
+	
+	public void move(int x1, int y1, int x_r, int y_r,int width1, int height1) {
+		x = x1+x_r;
+		y = y1+y_r;
+		width = width1+x_r;
+		height = height1+y_r;
+	}
+
+}
