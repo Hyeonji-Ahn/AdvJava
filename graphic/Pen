@@ -1,0 +1,72 @@
+package graphic;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.Line2D;
+import java.util.ArrayList;
+
+public class Pen extends Shape{
+	
+
+	private int thick;
+	private ArrayList<int[]> points;
+	
+
+	public Pen(ArrayList<int[]> points, Color c,int thick) {
+		super(-1,-1,-1,-1, c);
+		this.thick = thick;
+		this.points = points;
+	}
+	
+	
+	@Override
+	public Shape copy() {
+		return new Pen(points,c,thick);
+	}
+
+	@Override
+	public void draw(Graphics g) {
+		Graphics2D g2 = (Graphics2D) g;
+		g2.setColor(c);
+        g2.setStroke(new BasicStroke(thick));
+        for(int i=1; i<points.size(); i++) {
+        	g2.draw(new Line2D.Float(points.get(i-1)[0], points.get(i-1)[1], points.get(i)[0], points.get(i)[1]));
+        }
+	}
+
+	@Override
+	public boolean isOn(int mouse_x, int mouse_y) {
+		for(int i=1; i<points.size(); i++) {
+			if(thick>=Math.sqrt(Math.pow(mouse_x-points.get(i-1)[0], 2)+Math.pow(mouse_y-points.get(i-1)[1], 2))) {
+				return true;
+			}
+			Line l = new Line(points.get(i-1)[0], points.get(i-1)[1], points.get(i)[0], points.get(i)[1], c, thick);
+			if(l.isOn(mouse_x, mouse_y)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	@Override
+	public void resize(int t, int t2, int x1, int y1) {
+		int[] point = {x1,y1};
+		points.add(point);
+	}
+	
+	public void move(int x_r, int y_r, int x1, int y1,int t,int t1,ArrayList<int[]> points_rate) {
+		int n = 0;
+		while(n<points.size()) {
+			points.remove(n);
+			int[] new_point = {x1+points_rate.get(n)[0],y1+points_rate.get(n)[1]};
+			points.add(n,new_point);
+			n++;
+		}
+	}
+	
+	public ArrayList<int[]> getPoints(){
+		return points;
+	}
+}
