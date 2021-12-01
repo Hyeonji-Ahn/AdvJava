@@ -1,0 +1,37 @@
+package graphic;
+
+import java.awt.Color;
+import java.awt.Graphics;
+
+public class Circle extends Shape{
+	
+	public Circle(int x, int y, int w, int h, Color c) {
+		super(x, y, w, h, c);
+		
+	}
+
+	@Override
+	public Shape copy() {
+		return new Circle(x,y,width,height,c);
+	}
+
+	@Override
+	public void draw(Graphics g) {
+		g.setColor(c);
+		g.fillOval(x-width/2, y-width/2, width, width);
+
+	}
+
+	@Override
+	public boolean isOn(int mouse_x, int mouse_y) {
+		return width/2>=Math.sqrt(Math.pow(mouse_x-x, 2)+Math.pow(mouse_y-y, 2));
+		
+	}
+
+	@Override
+	public void resize(int x1, int y1, int x2, int y2) {
+		x = x1;
+		y = y1;
+		width = (int) Math.sqrt(Math.pow(x2-x1, 2)+Math.pow(y2-y1, 2))*2;
+	}
+}
