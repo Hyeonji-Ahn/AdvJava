@@ -7,11 +7,11 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 
 public class Text extends Shape{
-	String msg;
-	Font f;
+	String msg; //content of the text
+	Font f; //font of the text
 
 	public Text(int x, int y, int w, Color c, String msg) {
-		super(x, y, w, -1, c);
+		super(x, y, w, -1, c); //do not need height, so just return -1
 		this.msg = msg;
 	}
 
