@@ -23,9 +23,10 @@ public class Rectangle extends Shape{
 	public boolean isOn(int mouse_x, int mouse_y) {
 		return (mouse_x>x && mouse_y>y && x+width>mouse_x && y+height>mouse_y) ;
 	}
-
+	
 	@Override
 	public void resize(int x1, int y1, int x2, int y2) {
+		//if the last point is in left or up from the original point, switch the points
 		if(x2<x1) {
 			int temp = x1;
 			x1 = x2;
