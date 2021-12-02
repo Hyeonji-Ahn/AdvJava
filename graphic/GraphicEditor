@@ -41,8 +41,6 @@ public class GraphicEditor {
 	private int screen_shot=1; //number of screen shot taken.
 	private ArrayList<ArrayList<Shape>> undo_list = new ArrayList<ArrayList<Shape>>(); 
 	//list of previous shape list for undo function
-	private ArrayList<int[]> newpoints = new ArrayList<int[]>(); 
-	//list of points for moving pen shape
 	
 	public GraphicEditor() {
 		
@@ -171,8 +169,8 @@ public class GraphicEditor {
 				//adding initial array to prevent index out of bound error
 				undo_list.add(s);
 				shapes.add(new Rectangle(-1,-1,1,1,sel_c));
+				frame.getContentPane().repaint();
 			}
-			
 		});
 		
 		//move shapes
@@ -244,10 +242,9 @@ public class GraphicEditor {
 					//checking the size of the undo list to prevent there is nothing in the list
 					if(undo_list.size() > 1) {
 						undo_list.remove(undo_list.size()-1);
-						//TODO
-						System.out.println(undo_list);
 					} 
 				}
+				frame.getContentPane().repaint();
 				
 			}
 			
@@ -347,12 +344,10 @@ public class GraphicEditor {
 				}
 				if(moveShape) {
 					//if the user moved the shape, move the shape according to the mouse's movement
-					if(shapes.get(sel_shape).getPoints()!= null) {
-						shapes.get(sel_shape).move(0,0,e.getX(),e.getY(),0,0,newpoints);
-					}else {
-						shapes.get(sel_shape).move(x1,y1,e.getX(), e.getY(),width1,height1,null);
-					}
+					shapes.get(sel_shape).move(x1,y1,e.getX(), e.getY(),width1,height1);
+					
 				}
+				frame.getContentPane().repaint();
 			}
 
 			@Override
@@ -377,15 +372,7 @@ public class GraphicEditor {
 					shapes.add(new Rectangle(e.getX(),e.getY(),0,0,color));
 					//resize the rectangle by allowing the mouse movement listener.
 					addShape = true;
-					//make a copy of the shape list for undo function.
-					ArrayList<Shape> listcopy = new ArrayList<Shape>();
-					
-					//make a copy of every shape and add to the list
-					for(int i=0; i<shapes.size(); i++) {
-						listcopy.add(shapes.get(i).copy());
-					}
-					//add current shape list to the undo_list that has memory of the whole process.
-					undo_list.add(listcopy);
+					copyShapes();
 					
 				}else if(button_pressed[1]) { //add circle
 					//initial point (center point)
@@ -395,15 +382,7 @@ public class GraphicEditor {
 					shapes.add(new Circle(e.getX(),e.getY(),0,0,color));
 					//resize the circle by allowing the mouse movement listener.
 					addShape = true;
-					
-					//make a copy of the shape list for undo function.
-					ArrayList<Shape> listcopy = new ArrayList<Shape>();
-					
-					for(int i=0; i<shapes.size(); i++) {
-						listcopy.add(shapes.get(i).copy());
-					}
-					undo_list.add(listcopy);
-					
+					copyShapes();
 				}else if(button_pressed[2]) { //draw line
 					//initial point (top left of the line)
 					x1 = e.getX();
@@ -419,13 +398,7 @@ public class GraphicEditor {
 						//if the line width is in reasonable range, add the line and set it adjustable.
 						shapes.add(new Line(e.getX(),e.getY(),e.getX(),e.getY(),sel_c,Integer.parseInt(LineWidth_val.getText())));
 						addShape = true;
-						
-						//make a copy of the shape list for undo function.
-						ArrayList<Shape> listcopy = new ArrayList<Shape>();
-						for(int i=0; i<shapes.size(); i++) {
-							listcopy.add(shapes.get(i).copy());
-						}
-						undo_list.add(listcopy);
+						copyShapes();
 					}
 					
 				
@@ -434,29 +407,14 @@ public class GraphicEditor {
 				}else if(button_pressed[3]) { //add text
 					
 					shapes.add(new Text(e.getX(),e.getY(),Integer.parseInt(TextSize_val.getText()),sel_c,TextContent_val.getText()));
-					
-					//make a copy of the shape list for undo function.
-					ArrayList<Shape> listcopy = new ArrayList<Shape>();
-					
-					for(int i=0; i<shapes.size(); i++) {
-						listcopy.add(shapes.get(i).copy());
-					}
-					undo_list.add(listcopy);
-					//TODO
-					System.out.println(undo_list);
+					copyShapes();
 					
 				}else if(button_pressed[4]) { //delete shape
 					
 					for(int i=shapes.size()-1; i>0; i--) {
 						//going the shape list from back to delete shape in the front.
 						if(shapes.get(i).isOn(e.getX(), e.getY())){
-							//make a copy of the shape list for undo function first before deleting anything.
-							ArrayList<Shape> listcopy = new ArrayList<Shape>();
-							
-							for(int j=0; j<shapes.size(); j++) {
-								listcopy.add(shapes.get(j).copy());
-							}
-							undo_list.add(listcopy);
+							copyShapes();
 							shapes.remove(i);
 							break;
 						}
@@ -465,35 +423,17 @@ public class GraphicEditor {
 				}else if(button_pressed[5]) { //move
 					for(int i=shapes.size()-1; i>0; i--) {
 						if(shapes.get(i).isOn(e.getX(), e.getY())){
-							if(shapes.get(i).getPoints() != null) {
-								sel_shape = i;
+							sel_shape = i;
 								
-								ArrayList<int[]> points = shapes.get(i).getPoints();
-								for(int j=0; j<points.size(); j++) {
-									int[] newPoint = {points.get(i)[0]-e.getX(),points.get(i)[1]-e.getY()};
-									newpoints.add(newPoint);
-									moveShape = true;
-								}
-								
-							}else {
-								sel_shape = i;
-								
-								//move shape proportionally to the mouse's position.
-								x1 = shapes.get(i).x-e.getX();
-								y1 = shapes.get(i).y-e.getY();
-								width1 = shapes.get(i).width-e.getX();
-								height1 = shapes.get(i).height-e.getY();
-								
-								moveShape = true;
-								
-							}
-							//make a copy of the shape list for undo function
-							ArrayList<Shape> listcopy = new ArrayList<Shape>();
+							//move shape proportionally to the mouse's position.
+							x1 = shapes.get(i).x-e.getX();
+							y1 = shapes.get(i).y-e.getY();
+							width1 = shapes.get(i).width-e.getX();
+							height1 = shapes.get(i).height-e.getY();
 							
-							for(int j=0; j<shapes.size(); j++) {
-								listcopy.add(shapes.get(j).copy());
-							}
-							undo_list.add(listcopy);
+							moveShape = true;
+								
+							copyShapes();
 							
 							//break the for loop after find what shape to move.
 							break;
@@ -518,13 +458,7 @@ public class GraphicEditor {
 						index = -1;
 					}
 					
-					//make a copy of the shape list for undo function
-					ArrayList<Shape> listcopy = new ArrayList<Shape>();
-					
-					for(int i=0; i<shapes.size(); i++) {
-						listcopy.add(shapes.get(i).copy());
-					}
-					undo_list.add(listcopy);
+					copyShapes();
 					
 				}else if(button_pressed[7]) { //back
 					int index=-1;
@@ -541,13 +475,7 @@ public class GraphicEditor {
 						shapes.add(0, temp);
 						index = -1;
 					}
-					//make a copy of the shape list for undo function
-					ArrayList<Shape> listcopy = new ArrayList<Shape>();
-					
-					for(int i=0; i<shapes.size(); i++) {
-						listcopy.add(shapes.get(i).copy());
-					}
-					undo_list.add(listcopy);
+					copyShapes();
 					
 				}else if(button_pressed[8]) { //pen
 					//initial position (start point of the line drawn by pen)
@@ -556,25 +484,17 @@ public class GraphicEditor {
 					shapes.add(new Pen(new ArrayList<int[]>(),sel_c,Integer.parseInt(LineWidth_val.getText())));
 					addShape = true;
 					//make a copy of the shape list for undo function
-					ArrayList<Shape> listcopy = new ArrayList<Shape>();
-					
-					for(int i=0; i<shapes.size(); i++) {
-						listcopy.add(shapes.get(i).copy());
-					}
-					undo_list.add(listcopy);
-					//TODO
-					System.out.println(undo_list);
+					copyShapes();
 				}else if(button_pressed[9]) { //Color drop
-					for(int i=0; i<shapes.size(); i++) {
+					for(int i=shapes.size()-1; i>0; i--) {
 						if(shapes.get(i).isOn(e.getX(), e.getY())){
 							//change the selected color to the color of the paint
 							sel_c = shapes.get(i).c;
 							color_b.setForeground(sel_c);
 						}
 					}
-					//do not list to make copy for undo function because 
-					//there is no change in canvas itself.
 				}
+				frame.getContentPane().repaint();
 			}
 
 			@Override
@@ -602,18 +522,19 @@ public class GraphicEditor {
 		frame.setVisible(true);
 		mainContainer.setFocusable(true);
 		mainContainer.setBorder(BorderFactory.createTitledBorder("Graphic Editor"));
-		run();
 	}
 	
-	public void run() {
-		while (true) {
-			//repaint the canvas.
-			frame.getContentPane().repaint();
-			
-			try {
-				Thread.sleep(10);
-			} catch (Exception ex) {}
+	public void copyShapes() {
+		//make a copy of the shape list for undo function.
+		ArrayList<Shape> listcopy = new ArrayList<Shape>();
+		
+		//make a copy of every shape and add to the list
+		for(int i=0; i<shapes.size(); i++) {
+			listcopy.add(shapes.get(i).copy());
 		}
+		//add current shape list to the undo_list that has memory of the whole process.
+		undo_list.add(listcopy);
+		frame.getContentPane().repaint();
 	}
 	
 	public static void main(String[] args) {
