@@ -6,6 +6,7 @@ import java.awt.Graphics;
 public class Circle extends Shape{
 	
 	public Circle(int x, int y, int w, int h, Color c) {
+		//x and y locate at the center of the circle
 		super(x, y, w, h, c);
 		
 	}
@@ -24,12 +25,14 @@ public class Circle extends Shape{
 
 	@Override
 	public boolean isOn(int mouse_x, int mouse_y) {
+		//check weather the distance between mouse and the center is less or equal to the radius
 		return width/2>=Math.sqrt(Math.pow(mouse_x-x, 2)+Math.pow(mouse_y-y, 2));
 		
 	}
 
 	@Override
 	public void resize(int x1, int y1, int x2, int y2) {
+		//from the center, only radius of the circle change according to mouse movement
 		x = x1;
 		y = y1;
 		width = (int) Math.sqrt(Math.pow(x2-x1, 2)+Math.pow(y2-y1, 2))*2;
