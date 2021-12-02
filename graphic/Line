@@ -8,8 +8,10 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
 public class Line extends Shape{
-	private int thick;
+	private int thick; //thickness of the line
 	public Line(int x, int y, int w, int h, Color c, int thick) {
+		//x,y is the first point of the line
+		//w,h is the last point of the line
 		super(x, y, w, h, c);
 		this.thick = thick;
 	}
@@ -29,7 +31,9 @@ public class Line extends Shape{
 
 	@Override
 	public boolean isOn(int mouse_x, int mouse_y) {
-		//gx -y +b = 0
+		
+		//if the start point is located right or down of the end point, 
+		//change them to calculate the slope better.
 		if (x > width || y>height) {
 			int temp = x;
 			x =  width;
@@ -39,21 +43,26 @@ public class Line extends Shape{
 			height =temp;
 		}
 		
+		//calculate slope and y-intercept
+		//gx -y +b = 0
 		double g = (double)(height-y)/ (double)(width-x);
 		double b = g*-1*x+y;
 		double new_g = -1/g;
 		
-		if(x == width) {
-			if(y>=height) {
+		if(x == width) {//if the line is vertical
+			if(y>=height) { 
+				//check the distance between the x of center of the line and x of mouse is less than half of the thickness of the line
 				return Math.abs(mouse_x - x) <= thick / 2 && mouse_y <= y && mouse_y >= height;
 			}else {
 				return Math.abs(mouse_x - x) <= thick / 2 && mouse_y >= y && mouse_y <= height;
 			}
 		}
+		//check the distance between the center line of the line. it also check the each end line of the line
 		return Math.abs(g*mouse_x-mouse_y+b)/Math.sqrt(g*g+1)<=thick/2 && mouse_y >= new_g*(mouse_x-x)+y-(int)(thick*1.7) && mouse_y <= new_g*(mouse_x-width)+height+(int)(thick*1.7);
 	}
 
 	@Override
+	//assign new number to each point
 	public void resize(int x1, int y1, int x2, int y2) {
 		x=x1;
 		y = y1;
@@ -61,6 +70,7 @@ public class Line extends Shape{
 		height = y2;
 	}
 	
+	//move the line with regarding the first point that user choose.
 	public void move(int x1, int y1, int x_r, int y_r,int width1, int height1) {
 		x = x1+x_r;
 		y = y1+y_r;
