@@ -44,10 +44,6 @@ public class GraphicEditor {
 	
 	public GraphicEditor() {
 		
-		//adding initial array to prevent index out of bound error
-//		undo_list.add(new ArrayList<Shape>());
-//		shapes.add(new Rectangle(-1,-1,1,1,sel_c));
-		
 		//container for whole panels
 		JPanel mainContainer = new JPanel(); 
 		BoxLayout boxlayout = new BoxLayout(mainContainer, BoxLayout.Y_AXIS);
@@ -82,7 +78,10 @@ public class GraphicEditor {
 		canvas.setBackground(Color.white);
 		mainContainer.add(canvas);
 		
-		//button for each functions. If the button is pressed, change the mode of drawing by checking array of boolean.
+		//button for each functions. If the button is pressed, 
+		//change the mode of drawing by checking array of boolean.
+		
+		//button to draw rectangle
 		JButton rec_b = new JButton("Rectangle");
 		rec_b.addActionListener(new ActionListener() {
 			@Override
@@ -94,6 +93,7 @@ public class GraphicEditor {
 			}
 		});
 		
+		//button to draw circle
 		JButton circle_b = new JButton("Circle");
 		circle_b.addActionListener(new ActionListener() {
 			@Override
@@ -163,12 +163,8 @@ public class GraphicEditor {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ArrayList<Shape> s = new ArrayList<Shape>();
 				shapes.clear();
 				undo_list.clear();
-				//adding initial array to prevent index out of bound error
-				undo_list.add(s);
-				shapes.add(new Rectangle(-1,-1,1,1,sel_c));
 				frame.getContentPane().repaint();
 			}
 		});
@@ -268,7 +264,7 @@ public class GraphicEditor {
 		        g2.dispose();
 		 
 		        try{
-		        	//name of the screenshot changes so that it does not overwrite.
+		        //name of the screenshot changes so that it does not overwrite.
 		        ImageIO.write(image, "jpeg", new File("SCREEN_SHOT"+screen_shot+".jpeg"));
 		        }catch(IOException e1){
 		        	 e1.printStackTrace();
@@ -436,8 +432,6 @@ public class GraphicEditor {
 							
 							moveShape = true;
 								
-						
-							
 							//break the for loop after find what shape to move.
 							break;
 						}
