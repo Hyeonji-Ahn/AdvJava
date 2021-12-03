@@ -45,8 +45,8 @@ public class GraphicEditor {
 	public GraphicEditor() {
 		
 		//adding initial array to prevent index out of bound error
-		undo_list.add(new ArrayList<Shape>());
-		shapes.add(new Rectangle(-1,-1,1,1,sel_c));
+//		undo_list.add(new ArrayList<Shape>());
+//		shapes.add(new Rectangle(-1,-1,1,1,sel_c));
 		
 		//container for whole panels
 		JPanel mainContainer = new JPanel(); 
@@ -236,13 +236,16 @@ public class GraphicEditor {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//if the button is pressed and there is something done to the canvas, return the canvas status to one step previous.
-				if(undo_list.size()!=1) {
-					shapes = undo_list.get(undo_list.size()-1);
+				if(undo_list.size()>1) {
+					shapes = undo_list.get(undo_list.size()-2);
 					//if there is one or more thing done to the canvas, erase the current status.
 					//checking the size of the undo list to prevent there is nothing in the list
-					if(undo_list.size() > 1) {
+					if(undo_list.size() > 0) {
 						undo_list.remove(undo_list.size()-1);
 					} 
+				}else {
+					undo_list = new ArrayList<ArrayList<Shape>>(); 
+					shapes = new ArrayList<Shape>();
 				}
 				frame.getContentPane().repaint();
 				
@@ -372,7 +375,7 @@ public class GraphicEditor {
 					shapes.add(new Rectangle(e.getX(),e.getY(),0,0,color));
 					//resize the rectangle by allowing the mouse movement listener.
 					addShape = true;
-					copyShapes();
+				
 					
 				}else if(button_pressed[1]) { //add circle
 					//initial point (center point)
@@ -382,7 +385,7 @@ public class GraphicEditor {
 					shapes.add(new Circle(e.getX(),e.getY(),0,0,color));
 					//resize the circle by allowing the mouse movement listener.
 					addShape = true;
-					copyShapes();
+				
 				}else if(button_pressed[2]) { //draw line
 					//initial point (top left of the line)
 					x1 = e.getX();
@@ -398,7 +401,7 @@ public class GraphicEditor {
 						//if the line width is in reasonable range, add the line and set it adjustable.
 						shapes.add(new Line(e.getX(),e.getY(),e.getX(),e.getY(),sel_c,Integer.parseInt(LineWidth_val.getText())));
 						addShape = true;
-						copyShapes();
+					
 					}
 					
 				
@@ -407,14 +410,14 @@ public class GraphicEditor {
 				}else if(button_pressed[3]) { //add text
 					
 					shapes.add(new Text(e.getX(),e.getY(),Integer.parseInt(TextSize_val.getText()),sel_c,TextContent_val.getText()));
-					copyShapes();
+					
 					
 				}else if(button_pressed[4]) { //delete shape
 					
 					for(int i=shapes.size()-1; i>0; i--) {
 						//going the shape list from back to delete shape in the front.
 						if(shapes.get(i).isOn(e.getX(), e.getY())){
-							copyShapes();
+					
 							shapes.remove(i);
 							break;
 						}
@@ -433,7 +436,7 @@ public class GraphicEditor {
 							
 							moveShape = true;
 								
-							copyShapes();
+						
 							
 							//break the for loop after find what shape to move.
 							break;
@@ -458,7 +461,7 @@ public class GraphicEditor {
 						index = -1;
 					}
 					
-					copyShapes();
+					
 					
 				}else if(button_pressed[7]) { //back
 					int index=-1;
@@ -475,7 +478,7 @@ public class GraphicEditor {
 						shapes.add(0, temp);
 						index = -1;
 					}
-					copyShapes();
+					
 					
 				}else if(button_pressed[8]) { //pen
 					//initial position (start point of the line drawn by pen)
@@ -483,8 +486,7 @@ public class GraphicEditor {
 					y1 = e.getY();
 					shapes.add(new Pen(new ArrayList<int[]>(),sel_c,Integer.parseInt(LineWidth_val.getText())));
 					addShape = true;
-					//make a copy of the shape list for undo function
-					copyShapes();
+					
 				}else if(button_pressed[9]) { //Color drop
 					for(int i=shapes.size()-1; i>0; i--) {
 						if(shapes.get(i).isOn(e.getX(), e.getY())){
@@ -502,6 +504,7 @@ public class GraphicEditor {
 				//if the mouse is released, stop resizing or moving the shapes.
 				addShape = false;
 				moveShape = false;
+				copyShapes();
 			}
 
 			@Override
