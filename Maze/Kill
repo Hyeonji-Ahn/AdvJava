@@ -1,0 +1,32 @@
+package Maze;
+
+import java.util.LinkedList;
+
+public class Kill {
+	public int solver(int num) {
+		LinkedList<person> people = new LinkedList<person>();
+		for(int i=0; i<num; i++) {
+			people.add(new person(i));
+		}
+		int index = 1;
+		while(people.size()>1) {
+//			System.out.println(people.get(index).getNumber());
+			people.remove(index);
+			index+=1;
+			if(index>people.size()-1) {
+				if(index==people.size()) {
+					index = 0;
+				}else {
+					index = 1;
+				}
+			}
+		}
+		
+		return people.get(0).getNumber();
+	}
+	
+	public static void main(String[] args) {
+		Kill runner = new Kill();
+		System.out.println(runner.solver(10000));
+	}
+}
