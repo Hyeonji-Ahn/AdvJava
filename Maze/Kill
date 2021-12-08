@@ -4,9 +4,9 @@ import java.util.LinkedList;
 
 public class Kill {
 	public int solver(int num) {
-		LinkedList<person> people = new LinkedList<person>();
+		LinkedList<Integer> people = new LinkedList<Integer>();
 		for(int i=0; i<num; i++) {
-			people.add(new person(i));
+			people.add(i);
 		}
 		int index = 1;
 		while(people.size()>1) {
@@ -22,11 +22,11 @@ public class Kill {
 			}
 		}
 		
-		return people.get(0).getNumber();
+		return people.get(0);
 	}
 	
 	public static void main(String[] args) {
 		Kill runner = new Kill();
-		System.out.println(runner.solver(10000));
+		System.out.println(runner.solver(1000));
 	}
 }
