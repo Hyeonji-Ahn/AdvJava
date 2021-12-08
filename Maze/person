@@ -1,0 +1,13 @@
+package Maze;
+
+public class person {
+	private int number;
+	private boolean dead;
+	public person(int num) {
+		number = num;
+		dead = false;
+	}
+	public int getNumber() {
+		return number;
+	}
+}
