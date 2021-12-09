@@ -1,6 +1,8 @@
 package Maze;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Collections;
 
 public class Kill {
 	public int solver(int num) {
@@ -10,7 +12,6 @@ public class Kill {
 		}
 		int index = 1;
 		while(people.size()>1) {
-//			System.out.println(people.get(index).getNumber());
 			people.remove(index);
 			index+=1;
 			if(index>people.size()-1) {
@@ -25,8 +26,77 @@ public class Kill {
 		return people.get(0);
 	}
 	
+	//Medium (Logic): Take a positive integer as input. Return the next smallest positive number that contains 
+	//the same digit as the input. Return -1 if there is no such number. For example, an input of 1234 would return -1. 
+	//An input of 6739 would return 6397. An input of 6379 would return 3976.	
+	
+	
+	public int Medium(int num) {
+		String[] temp = Integer.toString(num).split("");
+		int[] numbers = new int[temp.length];
+		for(int i=0; i<temp.length; i++) {
+			numbers[i]  = Integer.valueOf(temp[i]);
+		}
+		for(int i=numbers.length-1; i>=0; i--) {
+			if(!smallest(numbers,i)) {
+				int nextSmall = findNextSmall(numbers,i);
+				int tempint = numbers[nextSmall];
+				numbers[nextSmall]  = numbers[i];
+				numbers[i] = tempint;
+				ArrayList<Integer> templist = new ArrayList<Integer>();
+			
+				for(int j=i+1; j<numbers.length; j++) {
+					templist.add(numbers[j]);
+				}	
+				if(templist.size()==1) {
+					return arrayToint(numbers);
+				}
+				Collections.sort(templist);
+				Collections.reverse(templist);
+				for(int j=0; j<templist.size(); j++) {
+					numbers[j+i+1] = templist.get(j);
+				}
+				return arrayToint(numbers);
+			}
+		}
+		return -1;
+	}
+	
+	public boolean smallest(int[] num, int ind) {
+		for(int i=num.length-1; i>ind; i--) {
+			if(num[i]<=num[ind]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public int findNextSmall(int[] num, int index) {
+		int maxind = num.length-1;
+		
+		for(int i=num.length-2; i>index; i--) {
+			if(num[i]<num[index] && num[maxind]>num[i]) {
+				maxind = i;
+			}
+		}
+		return maxind;
+		
+	}
+	
+	public int arrayToint(int[] num) {
+		
+		int ans = 0;
+		for(int i=0; i<num.length; i++) {
+			ans += num[i] * (int)(Math.pow(10, num.length-i-1));
+		}
+		return ans;
+	}
+	
+	
 	public static void main(String[] args) {
 		Kill runner = new Kill();
-		System.out.println(runner.solver(1000));
+		System.out.println(runner.Medium(1234));
+		System.out.println(runner.Medium(6739));
+		System.out.println(runner.Medium(6379));
 	}
 }
