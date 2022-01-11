@@ -5,9 +5,6 @@ import java.awt.Color;
 public class Bot1 extends Bot{
 	private int mode = 0;
 	private int recursive = 0;
-//	   1
-//	2     0
-//	   3
 	
 	public Bot1(MazeRunner mr, Color c) {
 		super(mr, c);
@@ -18,7 +15,7 @@ public class Bot1 extends Bot{
 		if(recursive>0) {
 			turnLeft();
 			recursive --;
-			System.out.println("turnLeft");	
+//			System.out.println("turnLeft");	
 		}else if(mode == 0) {
 			turnLeft(); //turn left to check there is wall on the left
 			mode =1;
@@ -30,16 +27,18 @@ public class Bot1 extends Bot{
 			mode = 3;
 		}else if(mode ==2) {
 			if(moveForward()) {
-				System.out.println("1 There is wall on the left. move Forward");
-				moveForward();
+//				System.out.println("1 There is wall on the left. move Forward");
+				//moveForward();
 				mode = 0;
+//				System.out.println("test1");
 			}else {
-				System.out.println("2 There is wall on the left. cannot MoveForward");
+//				System.out.println("2 There is wall on the left. cannot MoveForward");
 				recursive = 3;
 				mode=0;
+//				System.out.println("test2");
 			}
 		}else if(mode == 3) {
-			System.out.println("3 There isnt a wall on the left");
+//			System.out.println("3 There isnt a wall on the left");
 			moveForward();
 			recursive = 1;
 			mode = 0;
