@@ -8,6 +8,7 @@ public class Bot1 extends Bot{
 	
 	public Bot1(MazeRunner mr, Color c) {
 		super(mr, c);
+		mr.count = -500;
 	}
 
 	@Override
