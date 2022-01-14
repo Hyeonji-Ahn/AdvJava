@@ -2,11 +2,11 @@ package Maze;
 
 import java.awt.Color;
 
-public class Tiffany_Bot extends Bot{
+public class TiffanyBot extends Bot{
 	private int mode = 0;
 	private int recursive = 0;
 	
-	public Tiffany_Bot(MazeRunner mr, Color c) {
+	public TiffanyBot(MazeRunner mr, Color c) {
 		super(mr, c);
 		mr.count = -300;
 	}
