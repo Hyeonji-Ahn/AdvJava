@@ -1,0 +1,172 @@
+package graphs;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
+public class Graph<E> {
+	
+	private HashMap<E, Vertex> g = new HashMap<>();
+	
+	private class Vertex{
+		E info;
+		HashSet<Vertex> neighbors = new HashSet();;
+		
+		public Vertex(E info) {
+			this.info = info;
+		}
+		
+	}
+	
+	public void addVertex(E info) {
+		if(g.containsKey(info)) {
+			System.out.println("Nah");
+		}else {
+			g.put(info, new Vertex(info));
+		}
+		
+	}
+
+	public void connect(E info1, E info2) {
+		if(g.get(info1)==null || g.get(info2)==null) {
+			throw (new NullPointerException());
+		}else {
+			g.get(info1).neighbors.add(g.get(info2));
+			g.get(info2).neighbors.add(g.get(info1));
+		}
+		
+	}
+	
+	public void connect(Vertex v1, Vertex v2) {
+		g.get(v1.info).neighbors.add(v2);
+		g.get(v2.info).neighbors.add(v1);
+	}
+	
+	public Vertex getVertex(E info) {
+		return g.get(info);
+		
+	}
+	
+	public HashSet getNeighbors(E info) {
+		return getVertex(info).neighbors;
+	}
+	
+	public String toString() {
+		
+		String s = "";
+		
+		for(E key: g.keySet()) {
+			s+= key + " --> ";
+			s+= "[ ";
+			
+			for(Vertex v: g.get(key).neighbors){
+				s+= v.info+" ";
+			}
+			s+="] \n";
+		}
+		
+		
+		return s;
+	}
+	
+//	public String toString(E start) {
+//		String str = "";
+//		Vertex s = getVertex(start);
+//		
+//		Vertex curr=s;
+//		ArrayList<Vertex> toVisit = new ArrayList<Vertex>();
+//		ArrayList<Vertex> visited = new ArrayList<Vertex>();
+//		System.out.println(s.info);
+//		toVisit.add(curr);
+//		while(toVisit.size()!= 0) {
+//			curr=toVisit.remove(0);
+//			System.out.println(curr.info);
+//			visited.add(curr);
+//			for(Vertex a: curr.neighbors) {
+//				if(!visited.contains(a)) {
+//					toVisit.add(a);
+//					str += a.info+" ";
+//				}
+//			}
+//			str+= "\n";
+//		}
+//		
+//		return str;
+	}
+	public void remove(E info) {
+		for(Vertex v : g.get(info).neighbors) {
+			v.neighbors.remove(g.get(info));
+		}
+		g.remove(info);
+	}
+	
+	public int size() {
+		return g.size();
+	}
+	
+	public ArrayList<E> BreadthFirst(E startinfo, E endinfo){
+		
+		Vertex start = getVertex(startinfo);
+		Vertex end = getVertex(endinfo);
+		
+		HashMap<Vertex, Vertex> leadsTo = new HashMap<>();
+		Vertex curr=start;
+		ArrayList<Vertex> toVisit = new ArrayList<Vertex>();
+		toVisit.add(curr);
+		leadsTo.put(curr, null);
+		while(toVisit.size()!= 0) {
+			curr=toVisit.remove(0);
+			for(Vertex a: curr.neighbors) {
+				if(a == end) {
+					leadsTo.put(a,curr);
+					return BackTrace(leadsTo,start,end);
+				}
+				if(!leadsTo.containsKey(a)) {
+					toVisit.add(a);
+					leadsTo.put(a, curr);
+				}
+			}
+		}
+		return null;
+		
+	}
+	
+	public ArrayList<E> BackTrace(HashMap<Vertex,Vertex> map, Vertex start, Vertex end){
+		
+		ArrayList<E> path = new ArrayList<E>();
+		Vertex curr = end;
+		while(curr != null) {
+			
+			path.add(0,curr.info);
+			curr = map.get(curr);
+		}
+		return path;
+	}
+	
+	public static void main(String[] args) {
+		Graph<String> g = new Graph<String>();
+		g.addVertex("Tiffany");
+		g.addVertex("Emma");
+		g.addVertex("Linda");
+		g.addVertex("Ryan");
+		g.addVertex("Diana");
+		g.addVertex("Jacob");
+		g.addVertex("Cathy");
+		g.connect("Tiffany", "Emma");
+		g.connect("Tiffany", "Ryan");
+		g.connect("Tiffany", "Cathy");
+		g.connect("Emma", "Linda");
+		g.connect("Emma", "Diana");
+		g.connect("Diana", "Jacob");
+		g.connect("Diana", "Linda");
+		
+		System.out.println(g.toString());
+		System.out.println(g.BreadthFirst("Tiffany", "Jacob"));
+		System.out.println(g.toString("Tiffany"));
+		
+		
+	}
+	
+	
+	
+}
