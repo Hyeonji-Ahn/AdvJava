@@ -1,8 +1,13 @@
 package graphs;
 
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Scanner;
 
 public class Graph<E> {
 	
@@ -10,7 +15,7 @@ public class Graph<E> {
 	
 	private class Vertex{
 		E info;
-		HashSet<Vertex> neighbors = new HashSet();;
+		HashSet<Vertex> neighbors = new HashSet();
 		
 		public Vertex(E info) {
 			this.info = info;
@@ -56,43 +61,35 @@ public class Graph<E> {
 		String s = "";
 		
 		for(E key: g.keySet()) {
-			s+= key + " --> ";
-			s+= "[ ";
+			s+= key + "\n";
 			
 			for(Vertex v: g.get(key).neighbors){
 				s+= v.info+" ";
 			}
-			s+="] \n";
+			s+="\n";
 		}
 		
 		
 		return s;
 	}
 	
-//	public String toString(E start) {
-//		String str = "";
-//		Vertex s = getVertex(start);
-//		
-//		Vertex curr=s;
-//		ArrayList<Vertex> toVisit = new ArrayList<Vertex>();
-//		ArrayList<Vertex> visited = new ArrayList<Vertex>();
-//		System.out.println(s.info);
-//		toVisit.add(curr);
-//		while(toVisit.size()!= 0) {
-//			curr=toVisit.remove(0);
-//			System.out.println(curr.info);
-//			visited.add(curr);
-//			for(Vertex a: curr.neighbors) {
-//				if(!visited.contains(a)) {
-//					toVisit.add(a);
-//					str += a.info+" ";
-//				}
-//			}
-//			str+= "\n";
-//		}
-//		
-//		return str;
+	public String toStringS() {
+		
+		String s = "";
+		
+		for(E key: g.keySet()) {
+			s+= key + " --> ";
+			
+			for(Vertex v: g.get(key).neighbors){
+				s+= v.info+" ";
+			}
+			s+="\n";
+		}
+		
+		
+		return s;
 	}
+	
 	public void remove(E info) {
 		for(Vertex v : g.get(info).neighbors) {
 			v.neighbors.remove(g.get(info));
@@ -143,7 +140,47 @@ public class Graph<E> {
 		return path;
 	}
 	
-	public static void main(String[] args) {
+	public void writeFile(String FileName) throws IOException {
+		FileWriter out = new FileWriter(FileName+".txt");
+		out.write(toString());
+		out.close();
+	    System.out.println("Successfully wrote to the file.");
+	}
+	
+	public static Graph<String> readFile(String FileName) throws IOException {
+		Graph<String> gra = new Graph<String>();
+		File f = new File(FileName+".txt");
+	    Scanner read = new Scanner(f);
+	    while(read.hasNextLine()) {
+	    	String key = read.nextLine();
+	    	if(!gra.g.containsKey(key)) {
+				gra.addVertex(key);
+			}
+	    	String value = read.nextLine();
+	    	String word = "";
+	    	for(int i=0; i<value.length(); i++) {
+	    		if(value.charAt(i)!= ' ') {
+	    			word += value.charAt(i);
+	    		}else {
+	    			System.out.println(word);
+	    			if(gra.g.containsKey(word)) {
+	    				gra.connect(word,key);
+	    				word = "";
+	    			}else {
+	    				gra.addVertex(word);
+	    				word = "";
+	    			}
+	    		}
+	    	}
+	    	
+	    }
+	    
+	    return gra;
+	    
+		
+	}
+	
+	public static void main(String[] args) throws IOException {
 		Graph<String> g = new Graph<String>();
 		g.addVertex("Tiffany");
 		g.addVertex("Emma");
@@ -152,6 +189,8 @@ public class Graph<E> {
 		g.addVertex("Diana");
 		g.addVertex("Jacob");
 		g.addVertex("Cathy");
+		g.addVertex("James");
+		g.addVertex("Gregory");
 		g.connect("Tiffany", "Emma");
 		g.connect("Tiffany", "Ryan");
 		g.connect("Tiffany", "Cathy");
@@ -159,10 +198,13 @@ public class Graph<E> {
 		g.connect("Emma", "Diana");
 		g.connect("Diana", "Jacob");
 		g.connect("Diana", "Linda");
+		g.connect("Ryan", "James");
+		g.connect("Ryan", "Gregory");
+		g.connect("Tiffany", "Gregory");
 		
-		System.out.println(g.toString());
-		System.out.println(g.BreadthFirst("Tiffany", "Jacob"));
-		System.out.println(g.toString("Tiffany"));
+		g.writeFile("Friends");
+		Graph<String> g2 = readFile("Friends");
+		System.out.println(g2.toStringS());
 		
 		
 	}
@@ -170,3 +212,4 @@ public class Graph<E> {
 	
 	
 }
+
