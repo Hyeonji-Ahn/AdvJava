@@ -1,68 +1,270 @@
 package graphs;
 
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
+
 public class KBgame {
-	private HashMap<Integer, String> actors = new HashMap<Integer, String>();
-	private HashMap<Integer, String> movies = new HashMap<Integer, String>();
+	private final int WIDTH = 600, HEIGHT = 600; // height and width of the window
+	private final int DISPLAY_HEIGHT =  (int) (HEIGHT * 0.55);
+	private String chatLog = "\n"; //chat that displayed to the user
+	private HashMap<Integer, String> actors = new HashMap<Integer, String>(); //ID and Name
+	private HashMap<Integer, String> movies = new HashMap<Integer, String>(); //Id and name
 	private LGraph<String, String> g = new LGraph<String, String>();
+	private HashMap<String, ArrayList<String>> list = new HashMap<String, ArrayList<String>>();
 	
-	public void readActors() throws FileNotFoundException {
+	public void readActors() throws FileNotFoundException { //read actors from the flie
 		File f = new File("actors.txt");
 	    Scanner read = new Scanner(f);
-	    while(read.hasNextLine()) {
+	    while(read.hasNextLine()) { //if there is next line in the file
 	    	String[] s = read.nextLine().split("~");
-	    	actors.put(Integer.parseInt(s[0]),s[1]);
-	    	g.addVertex(s[1]); // ?
+	    	actors.put(Integer.parseInt(s[0]),s[1]); //put the information to the map of actor
+	    	g.addVertex(s[1]);
 	    }
+	    read.close();
 	}
 	
-	public void readMovie() throws FileNotFoundException {
+	public void readMovie() throws FileNotFoundException { //read movie from the file
 		File f = new File("movies.txt");
 	    Scanner read = new Scanner(f);
-	    while(read.hasNextLine()) {
+	    while(read.hasNextLine()) { //if there is next line in the file
 	    	String[] s = read.nextLine().split("~");
-	    	movies.put(Integer.parseInt(s[0]),s[1]);
+	    	movies.put(Integer.parseInt(s[0]),s[1]);//put the information to the map of movie
 	    }
+	    read.close();
 	}
 	
-	public void createMap() throws FileNotFoundException {
+	public void createMap() throws FileNotFoundException { //connect actors according to the movie that they were in
 		File f = new File("movie-actors.txt");
 	    Scanner read = new Scanner(f);
 	    String[] s = read.nextLine().split("~");
-    	int currmovie = Integer.parseInt(s[0]);
+    	int currmovie = Integer.parseInt(s[0]); //current movie, which is first thing in the list
     	ArrayList<String> actorsInMovie = new ArrayList<String>();
     	
-	    while(read.hasNextLine()) {
-	    	if(currmovie == Integer.parseInt(s[0])) {
-	    		actorsInMovie.add(actors.get(Integer.parseInt(s[1])));
-	    		s = read.nextLine().split("~");
-	    	}else {
-	    		for(int i=0; i<actorsInMovie.size(); i++) {
-	    	    	for(int j=i; j<actorsInMovie.size(); j++) {
+	    while(read.hasNextLine()) { //if there is next line in the file
+	    	
+	    	if(currmovie == Integer.parseInt(s[0])) { // if the line is about same movie.
+	    		actorsInMovie.add(actors.get(Integer.parseInt(s[1]))); // add the actor to the list of actors in the movie
+	    		s = read.nextLine().split("~"); //read next line
+	    	}else {//if the line changed, and it is different movie,
+	    		list.put(movies.get(currmovie), new ArrayList<String>()); //initiate the arraylist of the actors in the movie
+	    		
+	    		for(int i=0; i<actorsInMovie.size(); i++) { //for all the actors in the movie,
+	    	    	for(int j=i; j<actorsInMovie.size(); j++) { //connect all the other actors in the movie.
 	    	    		g.connect(actorsInMovie.get(i), actorsInMovie.get(j), movies.get(currmovie));
 	    	    	}
+	    	    	list.get(movies.get(currmovie)).add(actorsInMovie.get(i)); ////add the list of actor to the hash map of movie to the actors.
 	    	    }
-	    		currmovie = Integer.parseInt(s[0]);
-	    		actorsInMovie.clear();
+	    		
+	    		currmovie = Integer.parseInt(s[0]); //move to the next movie
+	    		actorsInMovie.clear(); //clear the actors list
 	    	}
 	    }
-    	currmovie = Integer.parseInt(s[0]);
-    	actorsInMovie.clear();
+    	read.close();
+	}
+	
+	public boolean isAvailable(String a) { //to check whether inputed actor is available in the list
+		for(Integer i: actors.keySet()) { 
+			if(a.equals(actors.get(i))) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isMovieAvailable(String a) { //to check whether inputed movie is available in the list
+		for(String i: list.keySet()) {
+			if(a.equals(i)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public KBgame() throws FileNotFoundException {
+		readActors();
+		readMovie();
+		createMap();
+		
+		JPanel textPanel = new JPanel(); //main panel that contains everything
+		BoxLayout boxlayout = new BoxLayout(textPanel, BoxLayout.Y_AXIS);
+		textPanel.setLayout(boxlayout);
+		textPanel.setBorder(BorderFactory.createTitledBorder("KB GAME"));
+		
+		JTextArea displayArea = new JTextArea(); //text display area
+		displayArea.setEditable(false);
+		textPanel.add(displayArea);
+		JScrollPane scroll = new JScrollPane (displayArea); 
+		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		scroll.setPreferredSize(new Dimension (WIDTH, DISPLAY_HEIGHT));
+		textPanel.add(scroll);
+		
+		JPanel buttonContainer = new JPanel(); //container for all buttons
+		textPanel.add(buttonContainer);
+		buttonContainer.setPreferredSize(new Dimension(WIDTH, (int) (HEIGHT*0.05)));
+		
+		JPanel TextBoxContainer1 = new JPanel(); //container for text entry places
+		TextBoxContainer1.setPreferredSize(new Dimension(WIDTH, (int) (HEIGHT*0.05)));
+		JPanel TextBoxContainer2 = new JPanel();
+		TextBoxContainer2.setPreferredSize(new Dimension(WIDTH, (int) (HEIGHT*0.05)));
+		
+		JLabel FirstActor = new JLabel("Actor A:");
+		
+		JTextArea FirstActor_val = new JTextArea("Kevin Bacon");
+		FirstActor_val.setEditable(true);
+		FirstActor_val.setPreferredSize(new Dimension(150, 20));
+		
+		JLabel SecondActor = new JLabel("Actor B:");
+		
+		JTextArea SecondActor_val = new JTextArea("Tom Holland");
+		SecondActor_val.setEditable(true);
+		SecondActor_val.setPreferredSize(new Dimension(150, 20));
+		
+		JLabel movie1 = new JLabel("Movie A:");
+		
+		JTextArea movie1_val = new JTextArea("Avatar");
+		movie1_val.setEditable(true);
+		movie1_val.setPreferredSize(new Dimension(150, 20));
+		
+		JLabel movie2 = new JLabel("Movie B:");
+		
+		JTextArea movie2_val = new JTextArea("Spider-Man 3");
+		movie2_val.setEditable(true);
+		movie2_val.setPreferredSize(new Dimension(150, 20));	
+		
+		TextBoxContainer1.add(FirstActor);
+		TextBoxContainer1.add(FirstActor_val);
+		TextBoxContainer1.add(SecondActor);
+		TextBoxContainer1.add(SecondActor_val);
+		TextBoxContainer2.add(movie1);
+		TextBoxContainer2.add(movie1_val);
+		TextBoxContainer2.add(movie2);
+		TextBoxContainer2.add(movie2_val);
+		
+		textPanel.add(TextBoxContainer1);
+		textPanel.add(TextBoxContainer2);
+		
+		JButton distance = new JButton("distance");
+		
+		distance.addActionListener(new ActionListener() { //button for calculating distance
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				if(FirstActor_val.getText().equals(SecondActor_val.getText())) {
+					chatLog+= "They are same person\n\n"; // if first person is same as second person.
+				}else if(isAvailable(FirstActor_val.getText()) && isAvailable(SecondActor_val.getText())) {
+					//if both actors are available
+					chatLog+=g.BreadthFirst(FirstActor_val.getText(), SecondActor_val.getText())+"\n\n";
+				}else if(!isAvailable(FirstActor_val.getText())){
+					//if first actor is not on the list
+					chatLog+=(" \""+FirstActor_val.getText()+"\" is not included in the list \n\n");
+				}else {
+					//if second actor is not on the list
+					chatLog+=(" \""+SecondActor_val.getText()+"\" is not included in the list \n\n");
+				}
+				displayArea.setText(chatLog);
+			}
+
+			
+		});
+		
+		JButton farthest = new JButton("farthest");
+		
+		farthest.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) { //find the farthest actor of the actor.
+				
+				if(isAvailable(FirstActor_val.getText())) {
+					//if the actor is available on the list
+					chatLog+=g.BreadthFirstTraverse((FirstActor_val.getText()))+"\n \n";
+				}else {
+					chatLog+=(" \""+FirstActor_val.getText()+"\" is not included in the list \n\n");
+				}
+				
+				displayArea.setText(chatLog);
+			}
+
+			
+		});
+		
+		JButton connect = new JButton("Average connectivity");
+		
+		connect.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) { //find the average connectivity of two movie
+				
+				if(isMovieAvailable(movie1_val.getText()) && isMovieAvailable(movie2_val.getText())) {
+						
+					
+					int count = 0; //total count of connection
+					if(list.get(movie1_val.getText()).size() > list.get(movie2_val.getText()).size()) { 
+						// if both movie is available on the list
+						//do a breadth First Traverse for shorter list
+						for(int i=0; i< list.get(movie2_val.getText()).size(); i++) {
+							int ab = g.BreadthFirstTraverse_connect(list.get(movie1_val.getText()).get(i), list.get(movie2_val.getText()));
+							count += ab;
+						}
+					}else {
+						for(int i=0; i< list.get(movie1_val.getText()).size(); i++) {
+							int ab = g.BreadthFirstTraverse_connect(list.get(movie1_val.getText()).get(i), list.get(movie2_val.getText()));
+							count += ab;
+						}
+					}
+					
+					chatLog+= "Average Connectivity between "+movie1_val.getText()+" and " + movie2_val.getText()+ " is "+ (count/(list.get(movie1_val.getText()).size()*list.get(movie2_val.getText()).size()))+"\n \n";
+					
+				}else {
+					//if one of the movie, or both, is not available
+					if(!isMovieAvailable(movie1_val.getText())) {
+						chatLog+= movie1_val.getText() + " is not available \n";
+					}
+					if(!isMovieAvailable(movie2_val.getText())) {
+						chatLog+= movie2_val.getText() + " is not available \n";
+					}
+					chatLog+= "\n";
+				}
+				
+				displayArea.setText(chatLog);
+			}
+			
+		});
+		
+		buttonContainer.add(distance);
+		buttonContainer.add(farthest);
+		buttonContainer.add(connect);
+		
+		
+		//setting of the frame.
+		JFrame frame = new JFrame();
+		frame.setSize(WIDTH, HEIGHT);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(textPanel);
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(true);
+		frame.setVisible(true);
+		textPanel.setFocusable(true);
+		textPanel.setBorder(BorderFactory.createTitledBorder("KEVIN BACON GAME"));
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException {
 		KBgame k = new KBgame();
-		
-		k.readActors();
-		k.readMovie();
-		k.createMap();
-		System.out.println(k.g.BreadthFirst("Dileep Rao", "Kevin Bacon"));
-		
 	}
 	
 	
