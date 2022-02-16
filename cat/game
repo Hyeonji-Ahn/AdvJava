@@ -1,0 +1,335 @@
+package cat;
+
+
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
+
+
+// drag https://stackoverflow.com/questions/874360/swing-creating-a-draggable-component/874424#874424
+
+
+public class game {
+	
+	private int epicChance = 5;
+	private int rareChance = 15;
+	private int id_count= 0;
+	
+	private class cat {
+		private int h ,b,t,id;
+		private boolean epic, rare;
+		
+		public cat(int h, int b, int t) {
+			this.h = h;
+			this.b = b;
+			this.t = t;
+			id = id_count;
+			id_count++;
+			if(h<epicChance && b<epicChance && t<epicChance) {
+				epic = true;
+			}else if(h<rareChance && b<rareChance && t<rareChance){
+				rare = true;
+			}
+		}
+		
+		public boolean isEpic() {
+			return epic;
+		}
+		public boolean isRare() {
+			return rare;
+		}
+		public String toString() {
+			return id+": "+h+"  "+b+"  "+t;
+		}
+		
+		public int getH() {
+			return h;
+		}
+		
+		public int getB() {
+			return b;
+		}
+		public int getT() {
+			return t;
+		}
+		
+	}
+	
+	private final int WIDTH = 420, HEIGHT = 750; // height and width of the window
+	private JPanel mainContainer = new JPanel(); 
+	private int fish = 100;
+	private final Color bgColor = new Color(135, 206, 235);
+	private ArrayList<cat> cats = new ArrayList<cat>();
+	private final double mutationChance = 0.4;
+	private int rarePity = 0;
+	private int epicPity = 0;
+	private JFrame frame= new JFrame();
+	private Dimension screenSize = new Dimension(WIDTH-40,HEIGHT-200);
+	private ArrayList<Integer> currCats = new ArrayList<Integer>();
+	
+	public boolean checkMoney(int m) {
+		if(m<0) {
+			JOptionPane.showMessageDialog(mainContainer, "Not Enough FISHH", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}else {
+			return true;
+		}
+	}
+	
+	public game() throws IOException {
+		JPanel fishContainer = new JPanel();
+		Icon fishIcon = new ImageIcon("CatImage/fishIcon.png");
+		
+		JLabel fishnum = new JLabel();
+		fishnum.setText(""+fish);
+		fishnum.setIcon(fishIcon);
+		
+		fishContainer.add(fishnum);
+		
+		JPanel cardContainer = new JPanel(); //container for all screens
+		CardLayout c = new CardLayout();
+		cardContainer.setLayout(c);
+		
+		JPanel collection = new JPanel(); //collection pane
+		JPanel collectionContainer = new JPanel();
+		collection.setBackground(bgColor);
+		collectionContainer.setLayout(new BoxLayout(collectionContainer, BoxLayout.Y_AXIS));
+		JScrollPane scroller = new JScrollPane(collectionContainer);
+		scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		scroller.setPreferredSize(screenSize);
+        collection.add(scroller);
+		
+        //TODO
+		JPanel breed = new JPanel(); //breed panel
+		breed.setBackground(bgColor);
+		JComboBox<Integer> choiceA = new JComboBox<Integer>();
+		JComboBox<Integer> choiceB = new JComboBox<Integer>();
+
+		breed.add(choiceA);
+		breed.add(choiceB);
+		
+		JButton breedButton= new JButton("breed");
+		
+		breedButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(choiceA.getSelectedItem() == choiceB.getSelectedItem()) {
+					JOptionPane.showMessageDialog(mainContainer, "You cannot breed same cat!", "Error", JOptionPane.ERROR_MESSAGE);
+				}else {
+					if(Math.random()<mutationChance) {
+						int h = (int)(Math.random()*100);
+						int b = (int)(Math.random()*100);
+						int t = (int)(Math.random()*100);
+					}else {
+						if((int)(Math.random()*2)==1) {
+							int h = choiceA.getSelectedItem();
+						}
+					}
+								
+					fish-=5;
+					fishnum.setText(""+fish);
+				}
+				
+			}
+			
+		});
+		
+		breed.add(breedButton);
+		
+        
+        
+        
+        
+        JPanel gacha = new JPanel(); //gacha panel
+        gacha.setBackground(bgColor);
+		JLabel gachaL = new JLabel("gacha");
+		gacha.add(gachaL);
+		JButton gacha_b = new JButton("Roll");
+		gacha_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				if(checkMoney(fish-10)) {
+
+					int h = (int)(Math.random()*100);
+					int b = (int)(Math.random()*100);
+					int t = (int)(Math.random()*100);
+					
+					if(epicPity >= 70) {
+						h =  (int)(Math.random()*epicChance);
+						b = (int)(Math.random()*epicChance);
+						t = (int)(Math.random()*epicChance);
+						epicPity = 0;
+						rarePity = 0;
+					}else if(rarePity>=40) {
+						h = (int)(Math.random()*rareChance);
+						b = (int)(Math.random()*rareChance);
+						t = (int)(Math.random()*rareChance);
+						rarePity = 0;
+					}
+					
+					if(h<epicChance && b<epicChance && t<epicChance) {
+						epicPity  = 0;
+						rarePity = 0;
+					}else if(h<rareChance&& b<rareChance && t<rareChance){
+						epicPity ++;
+						rarePity = 0;
+					}else {
+						rarePity++;
+						epicPity ++;
+					}
+					cat newC  =  new cat(h,b,t);
+					cats.add(newC);
+					currCats.add(id_count);
+					JPanel newPanel = new JPanel();
+					
+	                newPanel.add(new JLabel( cats.get(id_count-1).toString()));
+	                newPanel.add(new JLabel(new ImageIcon("CatImage/collectionBox.png")));
+	                collectionContainer.add(newPanel);
+	                
+	                fish-=10;
+					fishnum.setText(""+fish);
+					collectionContainer.validate();
+					breed.validate();
+					choiceA.addItem(id_count);
+					choiceB.addItem(id_count);
+				}
+				
+			}
+			
+		});
+		gacha.add(gacha_b);
+		
+		
+		
+		
+		
+		
+		JPanel home = new JPanel();
+		
+		JPanel menu = new JPanel();
+		
+		cardContainer.add(home, "h");
+		cardContainer.add(gacha, "g");
+		cardContainer.add(collection, "c");
+		cardContainer.add(breed, "b");
+		
+		Icon gachaI = new ImageIcon("CatImage/gachaIcon.png");
+		JButton gachaB  = new JButton(gachaI);
+		gachaB.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				c.show(cardContainer, "g");
+				gacha.revalidate();
+				gacha.repaint();
+			}
+			
+		});
+		
+		
+		Icon collectionI = new ImageIcon("CatImage/collectionIcon.png");
+		JButton collectionB  = new JButton(collectionI);
+		collectionB.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				c.show(cardContainer, "c");
+				collection.revalidate();
+				collection.repaint();
+			}
+			
+		});
+		Icon breedI = new ImageIcon("CatImage/breedIcon.png");
+		JButton breedB  = new JButton(breedI);
+		breedB.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				c.show(cardContainer, "b");
+				breed.revalidate();
+				breed.repaint();
+			}
+			
+		});
+		Icon homeI = new ImageIcon("CatImage/homeIcon.png");
+		JButton homeB  = new JButton(homeI);
+		homeB.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				c.show(cardContainer, "h");
+				home.repaint();
+			}
+			
+		});
+		
+		
+		
+		menu.add(homeB);
+		menu.add(collectionB);
+		menu.add(gachaB);
+		menu.add(breedB);
+		menu.setBackground(bgColor);
+		
+		
+		menu.add(fishContainer);
+		
+		ImageIcon homeBg = new ImageIcon(ImageIO.read(new File("CatImage/homeBg.jpg")));
+		
+		JLabel homeBg_l = new JLabel(homeBg);
+		home.add(homeBg_l);
+		home.setBackground(bgColor);
+		
+		
+		JButton addFish = new JButton("FISH");
+		addFish.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fish++;
+				fishnum.setText(""+fish);
+			}
+			
+		});
+		
+		
+		mainContainer.add(menu);
+		mainContainer.add(addFish);
+		mainContainer.add(cardContainer);
+		
+		frame.setSize(WIDTH, HEIGHT);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(mainContainer);
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(true);
+		frame.setVisible(true);
+		mainContainer.setBackground(bgColor);//sky blue
+		mainContainer.setFocusable(true);
+	}
+	
+	
+	public static void main(String[] args) throws IOException {
+		game runner = new game();
+	}
+}
