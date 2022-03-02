@@ -4,11 +4,19 @@ package cat;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -29,13 +37,14 @@ import javax.swing.ScrollPaneConstants;
 
 public class game {
 	
+	private final int WIDTH = 420, HEIGHT = 750; // height and width of the window
 	private int epicChance = 5;
 	private int rareChance = 15;
 	private int id_count= 0;
 	
 	private class cat {
 		private int h ,b,t,id;
-		private boolean epic, rare;
+		private int x,y;
 		
 		public cat(int h, int b, int t) {
 			this.h = h;
@@ -43,21 +52,11 @@ public class game {
 			this.t = t;
 			id = id_count;
 			id_count++;
-			if(h<epicChance && b<epicChance && t<epicChance) {
-				epic = true;
-			}else if(h<rareChance && b<rareChance && t<rareChance){
-				rare = true;
-			}
-		}
-		
-		public boolean isEpic() {
-			return epic;
-		}
-		public boolean isRare() {
-			return rare;
+			x = (int) (Math.random() * (WIDTH-70))+70;
+			y = (int)(Math.random() * (HEIGHT-100))+100;
 		}
 		public String toString() {
-			return id+": "+h+"  "+b+"  "+t;
+			return id+" "+h+" "+b+" "+t;
 		}
 		
 		public int getH() {
@@ -70,20 +69,42 @@ public class game {
 		public int getT() {
 			return t;
 		}
-		
+		public void draw(Graphics g) throws IOException {
+			BufferedImage b_image = ImageIO.read(new File("CatImage/Cats/b/"+"1"+".png"));
+			g.drawImage(b_image, x+10, y+10, null);
+			BufferedImage h_image = ImageIO.read(new File("CatImage/Cats/h/"+"1"+".png"));
+			g.drawImage(h_image, x, y, null);
+			BufferedImage t_image = ImageIO.read(new File("CatImage/Cats/t/"+"1"+".png"));
+			g.drawImage(t_image, x+30, y-5, null);
+		}
 	}
 	
-	private final int WIDTH = 420, HEIGHT = 750; // height and width of the window
 	private JPanel mainContainer = new JPanel(); 
-	private int fish = 100;
+	private int fish = 0;
 	private final Color bgColor = new Color(135, 206, 235);
 	private ArrayList<cat> cats = new ArrayList<cat>();
-	private final double mutationChance = 0.4;
+	private final double mutationChance = 0.2;
 	private int rarePity = 0;
 	private int epicPity = 0;
 	private JFrame frame= new JFrame();
 	private Dimension screenSize = new Dimension(WIDTH-40,HEIGHT-200);
-	private ArrayList<Integer> currCats = new ArrayList<Integer>();
+	private HashMap<Integer,cat> currCats= new HashMap<Integer,cat>();
+
+	public void writeFile() throws IOException {
+		FileWriter out = new FileWriter("catGame.txt");
+		out.write(fish+"\n");
+		
+		for(int i: currCats.keySet()) {
+			out.write(i+"\n");
+		}
+		out.write("\n");
+		for(int i=0; i<cats.size(); i++) {
+			out.write(cats.get(i).toString()+"\n");
+		}
+		
+		out.close();
+	    System.out.println("Successfully wrote to the file.");
+	}
 	
 	public boolean checkMoney(int m) {
 		if(m<0) {
@@ -94,7 +115,56 @@ public class game {
 		}
 	}
 	
+	public JPanel addCat(int h, int b, int t, boolean isCurr) {
+		cat newC = new cat(h,b,t);
+		cats.add(newC);
+		if(isCurr) {
+			currCats.put(id_count-1, newC);
+		}
+		
+		
+		Color panelback = bgColor;
+		if(h<epicChance || b<epicChance || t<epicChance) {
+			panelback = new Color	(0,112,221);
+		}else if(h<rareChance|| b<rareChance || t<rareChance){
+			panelback = new Color(30,255,0);
+		}else if(h<epicChance && b<epicChance && t<epicChance) {
+			panelback = new Color(255,128,0);
+		}else if(h<rareChance&& b<rareChance && t<rareChance){
+			panelback = new Color(163,53,238);
+		}else {
+			panelback = new Color(255, 255,255);
+		}
+		
+		JPanel newPanel = new JPanel();
+		
+		newPanel.setBackground(panelback);
+        newPanel.add(new JLabel( cats.get(id_count-1).toString()));
+        newPanel.add(new JLabel(new ImageIcon("CatImage/collectionBox.png")));
+       return newPanel;
+					
+	}
+	
 	public game() throws IOException {
+		
+		File f = new File("catGame.txt");
+	    Scanner read = new Scanner(f);
+	    fish = Integer.parseInt(read.nextLine());
+		
+		JPanel home = new JPanel() {
+			public void paint (Graphics g) {
+				super.paint(g);
+				
+				for(int i: currCats.keySet()) {
+					try {
+						currCats.get(i).draw(g);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		
 		JPanel fishContainer = new JPanel();
 		Icon fishIcon = new ImageIcon("CatImage/fishIcon.png");
 		
@@ -117,7 +187,6 @@ public class game {
 		scroller.setPreferredSize(screenSize);
         collection.add(scroller);
 		
-        //TODO
 		JPanel breed = new JPanel(); //breed panel
 		breed.setBackground(bgColor);
 		JComboBox<Integer> choiceA = new JComboBox<Integer>();
@@ -132,37 +201,66 @@ public class game {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(choiceA.getSelectedItem() == choiceB.getSelectedItem()) {
-					JOptionPane.showMessageDialog(mainContainer, "You cannot breed same cat!", "Error", JOptionPane.ERROR_MESSAGE);
-				}else {
-					if(Math.random()<mutationChance) {
-						int h = (int)(Math.random()*100);
-						int b = (int)(Math.random()*100);
-						int t = (int)(Math.random()*100);
+				if(checkMoney(fish-5)) {
+					if(choiceA.getSelectedItem() == choiceB.getSelectedItem()) {
+						JOptionPane.showMessageDialog(mainContainer, "You cannot breed same cat!", "Error", JOptionPane.ERROR_MESSAGE);
 					}else {
-						if((int)(Math.random()*2)==1) {
-							int h = choiceA.getSelectedItem();
+						Object f_choice = choiceA.getSelectedItem();
+						Object s_choice = choiceB.getSelectedItem();
+						int h = -1;
+						int b = -1;
+						int t = -1;
+						if(Math.random()<mutationChance) {
+							h = (int)(Math.random()*100);
+							b = (int)(Math.random()*100);
+							t = (int)(Math.random()*100);
+							System.out.println("mutation!");
+						}else {
+							if((int)(Math.random()*2)==1) {
+								h = currCats.get(f_choice).getH();
+							}else {
+								h = currCats.get(s_choice).getH();
+							}
+							if((int)(Math.random()*2)==1) {
+								b = currCats.get(f_choice).getB();
+							}else {
+								b = currCats.get(s_choice).getB();
+							}
+							if((int)(Math.random()*2)==1) {
+								t = currCats.get(f_choice).getT();
+							}else {
+								t = currCats.get(s_choice).getT();
+							}
 						}
+						
+						
+						currCats.remove(f_choice);
+						currCats.remove(s_choice);
+						
+						collectionContainer.add(addCat(h,b,t, true));
+		                
+		                collection.revalidate();
+									
+						fish-=5;
+						fishnum.setText(""+fish);
+						
+						choiceA.removeItem(f_choice);
+						choiceB.removeItem(f_choice);
+						choiceA.removeItem(s_choice);
+						choiceB.removeItem(s_choice);
+						breed.revalidate();
+						choiceA.addItem(id_count-1);
+						choiceB.addItem(id_count-1);
 					}
-								
-					fish-=5;
-					fishnum.setText(""+fish);
+					
 				}
-				
 			}
-			
 		});
 		
 		breed.add(breedButton);
-		
-        
-        
-        
         
         JPanel gacha = new JPanel(); //gacha panel
         gacha.setBackground(bgColor);
-		JLabel gachaL = new JLabel("gacha");
-		gacha.add(gachaL);
 		JButton gacha_b = new JButton("Roll");
 		gacha_b.addActionListener(new ActionListener() {
 
@@ -198,34 +296,21 @@ public class game {
 						rarePity++;
 						epicPity ++;
 					}
-					cat newC  =  new cat(h,b,t);
-					cats.add(newC);
-					currCats.add(id_count);
-					JPanel newPanel = new JPanel();
 					
-	                newPanel.add(new JLabel( cats.get(id_count-1).toString()));
-	                newPanel.add(new JLabel(new ImageIcon("CatImage/collectionBox.png")));
-	                collectionContainer.add(newPanel);
+					collectionContainer.add(addCat(h,b,t,true));
 	                
 	                fish-=10;
 					fishnum.setText(""+fish);
 					collectionContainer.validate();
 					breed.validate();
-					choiceA.addItem(id_count);
-					choiceB.addItem(id_count);
+					choiceA.addItem(id_count-1);
+					choiceB.addItem(id_count-1);
 				}
 				
 			}
 			
 		});
 		gacha.add(gacha_b);
-		
-		
-		
-		
-		
-		
-		JPanel home = new JPanel();
 		
 		JPanel menu = new JPanel();
 		
@@ -314,6 +399,7 @@ public class game {
 		});
 		
 		
+		
 		mainContainer.add(menu);
 		mainContainer.add(addFish);
 		mainContainer.add(cardContainer);
@@ -324,9 +410,47 @@ public class game {
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(true);
 		frame.setVisible(true);
+		frame.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				try {
+					writeFile();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+	    });
 		mainContainer.setBackground(bgColor);//sky blue
 		mainContainer.setFocusable(true);
+		
+		ArrayList<Integer> currentInd = new ArrayList<Integer>();
+	    while(read.hasNext()) {
+	    	String temp = read.nextLine();
+	    	if(temp.length()!=0) {
+	    		currentInd.add(Integer.parseInt(temp));
+	    	}else {
+	    		break;
+	    	}
+	    }
+	    System.out.println(currentInd);
+	    
+	    while(read.hasNext()){
+	    	
+	    	String[] temp = read.nextLine().split(" ");
+//	    	System.out.println(Arrays.toString(temp));
+	    	if(currentInd.contains(Integer.parseInt(temp[0]))) {
+	    		collectionContainer.add(addCat( Integer.parseInt(temp[1]),  Integer.parseInt(temp[2]), Integer.parseInt(temp[3]),true));
+	    		choiceA.addItem(id_count-1);
+				choiceB.addItem(id_count-1);
+	    	}else {
+	    		collectionContainer.add(addCat( Integer.parseInt(temp[1]),  Integer.parseInt(temp[2]), Integer.parseInt(temp[3]),false)) ;
+	    	}
+	    }
+	   
+	    System.out.println(currCats.keySet());
+		home.repaint();
 	}
+	
+	
 	
 	
 	public static void main(String[] args) throws IOException {
