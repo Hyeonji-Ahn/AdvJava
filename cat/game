@@ -14,7 +14,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -31,29 +30,27 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
-
-// drag https://stackoverflow.com/questions/874360/swing-creating-a-draggable-component/874424#874424
-
-
 public class game {
 	
-	private final int WIDTH = 420, HEIGHT = 750; // height and width of the window
-	private int epicChance = 5;
-	private int rareChance = 15;
-	private int id_count= 0;
+	private Color[] preset_color = new Color[100] ;
+	private final String[] preset_color_temp = "125 23 135,215 114 49,235 221 167,199 246 89,191 3 131,163 80 114,95 116 9,24 207 5,113 43 57,245 140 105,167 16 226,125 147 95,24 50 50,167 69 48,19 190 194,135 109 55,229 153 227,184 132 198,241 110 178,234 95 78,85 220 80,81 134 1,150 87 204,150 219 35,92 137 31,199 90 102,216 227 53,160 171 53,160 104 66,127 196 48,99 45 123,126 181 206,31 161 11,88 196 217,46 26 13,203 92 119,229 71 160,183 193 24,42 183 182,8 160 240,8 72 44,236 72 39,156 83 44,102 155 163,152 122 104,14 60 184,227 50 73,205 9 10,93 204 34,31 220 226,20 206 75,237 58 152,14 71 9,121 79 161,172 195 66,39 114 64,55 243 123,44 62 157,191 85 31,184 206 151,132 54 37,31 19 3,36 251 18,134 226 32,224 123 43,104 96 47,211 242 153,91 183 28,224 156 33,72 152 40,81 26 85,82 105 196,32 137 79,238 187 167,217 30 204,191 150 129,175 57 232,242 120 160,83 32 129,113 182 33,81 36 89,40 84 235,91 163 52,217 241 228,7 166 135,57 162 223,73 159 208,47 78 87,200 37 201,241 179 70,3 59 121,27 17 199,58 174 107,12 32 34,71 183 50,27 210 91,242 65 8,146 66 111,157 141 5,15 54 81,".split(",");
+	private final int WIDTH = 400, HEIGHT = 750; // height and width of the game window
+	private int epicChance = 5; //chance of getting epic cat (%)
+	private int rareChance = 15;//chance of getting rare cat (%)
+	private int id_count= 0; // id of each cat
 	
 	private class cat {
-		private int h ,b,t,id;
-		private int x,y;
+		private int h ,b,t,id; // head, body, tail color, id
+		private int x,y; // position of the cat
 		
 		public cat(int h, int b, int t) {
 			this.h = h;
 			this.b = b;
 			this.t = t;
 			id = id_count;
-			id_count++;
-			x = (int) (Math.random() * (WIDTH-70))+70;
-			y = (int)(Math.random() * (HEIGHT-100))+100;
+			id_count++; //id increases as the cat added
+			x = (int) (Math.random() * WIDTH);
+			y = (int) (Math.random() * HEIGHT-10); //made it as -10 to make the cat shows up in the screen, not at the end.
 		}
 		public String toString() {
 			return id+" "+h+" "+b+" "+t;
@@ -69,44 +66,85 @@ public class game {
 		public int getT() {
 			return t;
 		}
+		
+		public void create_pixel_array(BufferedImage image, BufferedImage new_image, char c) {
+	        int wid = image.getWidth();
+	        int hei = image.getHeight();
+	        for (int i = 0; i < hei; i++) {
+	            for (int j = 0; j < wid; j++) {
+	            	int color = image.getRGB(j, i); //get an RGB value of the original file
+
+	            	// Components will be in the range of 0..255:
+	            	int blue = color & 0xff;
+	            	int green = (color & 0xff00) >> 8;
+	            	int red = (color & 0xff0000) >> 16;
+	            	int alpha = (color & 0xff000000) >>> 24;
+	                
+	            	if (alpha == 0) {
+	            		new_image.setRGB(j, i, color); //if the pixel is transparent
+	            	}else if(!(blue==0&&green==0&&red==0)) {
+	            		new_image.setRGB(j, i, Color.white.getRGB()); //if the pixel is white
+	            	}else {
+	            		if(c=='h') { //if it is head
+	            			new_image.setRGB(j, i, preset_color[h].getRGB());
+	            		}else if(c=='b') { // if it is body
+	            			new_image.setRGB(j, i, preset_color[b].getRGB());
+	            		}else { // if it is tail
+	            			new_image.setRGB(j,i, preset_color[t].getRGB());
+	            		}
+	            	}
+	            	
+	            }
+	        }
+		}
+
 		public void draw(Graphics g) throws IOException {
-			BufferedImage b_image = ImageIO.read(new File("CatImage/Cats/b/"+"1"+".png"));
-			g.drawImage(b_image, x+10, y+10, null);
-			BufferedImage h_image = ImageIO.read(new File("CatImage/Cats/h/"+"1"+".png"));
-			g.drawImage(h_image, x, y, null);
-			BufferedImage t_image = ImageIO.read(new File("CatImage/Cats/t/"+"1"+".png"));
-			g.drawImage(t_image, x+30, y-5, null);
+			//get image and change it base on the color.
+			BufferedImage b_image = ImageIO.read(new File("CatImage/body.png"));
+	        BufferedImage new_b_image = new BufferedImage(b_image.getWidth(),b_image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+	        create_pixel_array(b_image, new_b_image, 'b');
+			g.drawImage(new_b_image, x+10, y+10, null);
+			
+			BufferedImage h_image = ImageIO.read(new File("CatImage/head.png"));
+			BufferedImage new_h_image = new BufferedImage(h_image.getWidth(),h_image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+	        create_pixel_array(h_image, new_h_image, 'h');
+			g.drawImage(new_h_image, x, y, null);
+			
+			BufferedImage t_image = ImageIO.read(new File("CatImage/tail.png"));
+			BufferedImage new_t_image = new BufferedImage(t_image.getWidth(),t_image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+	        create_pixel_array(t_image, new_t_image, 't');
+			g.drawImage(new_t_image, x+30, y-5, null);
 		}
 	}
 	
 	private JPanel mainContainer = new JPanel(); 
-	private int fish = 0;
-	private final Color bgColor = new Color(135, 206, 235);
-	private ArrayList<cat> cats = new ArrayList<cat>();
-	private final double mutationChance = 0.2;
-	private int rarePity = 0;
-	private int epicPity = 0;
-	private JFrame frame= new JFrame();
-	private Dimension screenSize = new Dimension(WIDTH-40,HEIGHT-200);
+	private int fish = 0; //number of fish
+	private final Color bgColor = new Color(135, 206, 235); // back ground color
+	private ArrayList<cat> cats = new ArrayList<cat>(); //cats in the collection
+	private final double mutationChance = 0.2; //chance of mutation
+	private int rarePity = 0; //pity of getting rare part
+	private int epicPity = 0; //pity of getting epic part. If epic pity got full, rare part and epic part both get zero.
+	private JFrame frame= new JFrame(); //main window frame
+	private Dimension screenSize = new Dimension(WIDTH-20,HEIGHT-150); //screen size of the 
 	private HashMap<Integer,cat> currCats= new HashMap<Integer,cat>();
-
+	
 	public void writeFile() throws IOException {
+		//write file for the save function of the game
 		FileWriter out = new FileWriter("catGame.txt");
-		out.write(fish+"\n");
+		out.write(fish+"\n"); //save number of fish
 		
-		for(int i: currCats.keySet()) {
+		for(int i: currCats.keySet()) { //save what cats are current
 			out.write(i+"\n");
 		}
 		out.write("\n");
-		for(int i=0; i<cats.size(); i++) {
+		for(int i=0; i<cats.size(); i++) { //save all the cats that player collected
 			out.write(cats.get(i).toString()+"\n");
 		}
 		
 		out.close();
-	    System.out.println("Successfully wrote to the file.");
 	}
 	
-	public boolean checkMoney(int m) {
+	public boolean checkMoney(int m) { //check if the player has enough money to buy cat.
 		if(m<0) {
 			JOptionPane.showMessageDialog(mainContainer, "Not Enough FISHH", "Error", JOptionPane.ERROR_MESSAGE);
 			return false;
@@ -115,43 +153,52 @@ public class game {
 		}
 	}
 	
-	public JPanel addCat(int h, int b, int t, boolean isCurr) {
+	public JPanel addCat(int h, int b, int t, boolean isCurr) { //add cat though breeding or new cat.
 		cat newC = new cat(h,b,t);
 		cats.add(newC);
 		if(isCurr) {
-			currCats.put(id_count-1, newC);
+			currCats.put(id_count-1, newC); //if the cat is currently available
 		}
 		
-		
+		//add the panel for the collection
 		Color panelback = bgColor;
-		if(h<epicChance || b<epicChance || t<epicChance) {
-			panelback = new Color	(0,112,221);
-		}else if(h<rareChance|| b<rareChance || t<rareChance){
+		if(h<epicChance || b<epicChance || t<epicChance) { //one or two epic
+			panelback = new Color(0,112,221);
+		}else if(h<rareChance|| b<rareChance || t<rareChance){ //one or two rare
 			panelback = new Color(30,255,0);
-		}else if(h<epicChance && b<epicChance && t<epicChance) {
+		}else if(h<epicChance && b<epicChance && t<epicChance) { //full epic
 			panelback = new Color(255,128,0);
-		}else if(h<rareChance&& b<rareChance && t<rareChance){
+		}else if(h<rareChance&& b<rareChance && t<rareChance){ //full rare
 			panelback = new Color(163,53,238);
 		}else {
-			panelback = new Color(255, 255,255);
+			panelback = new Color(255, 255,255); //normal
 		}
 		
-		JPanel newPanel = new JPanel();
+		JPanel newPanel = new JPanel(); //panel for the collection
 		
 		newPanel.setBackground(panelback);
-        newPanel.add(new JLabel( cats.get(id_count-1).toString()));
-        newPanel.add(new JLabel(new ImageIcon("CatImage/collectionBox.png")));
-       return newPanel;
+        newPanel.add(new JLabel(cats.get(id_count-1).toString()));
+        return newPanel;
 					
 	}
 	
 	public game() throws IOException {
 		
+		//fill the preset color array with the colors
+		for(int i=0; i<preset_color_temp.length; i++) {
+			String[] temp = preset_color_temp[i].split(" ");
+			preset_color[i] = new Color( Integer.parseInt(temp[0]),Integer.parseInt(temp[1]),Integer.parseInt(temp[2]));
+		}
+		
+		//load the file
 		File f = new File("catGame.txt");
 	    Scanner read = new Scanner(f);
+	    //read fish value first
 	    fish = Integer.parseInt(read.nextLine());
-		
+	    
+	    //draw home panel
 		JPanel home = new JPanel() {
+			//paint all the cats
 			public void paint (Graphics g) {
 				super.paint(g);
 				
@@ -165,38 +212,41 @@ public class game {
 			}
 		};
 		
+		//container that hold number of fish
 		JPanel fishContainer = new JPanel();
 		Icon fishIcon = new ImageIcon("CatImage/fishIcon.png");
-		
 		JLabel fishnum = new JLabel();
 		fishnum.setText(""+fish);
 		fishnum.setIcon(fishIcon);
-		
 		fishContainer.add(fishnum);
 		
-		JPanel cardContainer = new JPanel(); //container for all screens
+		//container for all screens
+		JPanel cardContainer = new JPanel();
 		CardLayout c = new CardLayout();
 		cardContainer.setLayout(c);
 		
-		JPanel collection = new JPanel(); //collection pane
+		//collection pane
+		JPanel collection = new JPanel();
 		JPanel collectionContainer = new JPanel();
 		collection.setBackground(bgColor);
 		collectionContainer.setLayout(new BoxLayout(collectionContainer, BoxLayout.Y_AXIS));
-		JScrollPane scroller = new JScrollPane(collectionContainer);
+		//collection container is box layout to store all the panel of cats' information
+		JScrollPane scroller = new JScrollPane(collectionContainer); //add scroll bar
 		scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scroller.setPreferredSize(screenSize);
         collection.add(scroller);
 		
-		JPanel breed = new JPanel(); //breed panel
+        //breed panel
+		JPanel breed = new JPanel();
 		breed.setBackground(bgColor);
+		//two choices for breeding
 		JComboBox<Integer> choiceA = new JComboBox<Integer>();
 		JComboBox<Integer> choiceB = new JComboBox<Integer>();
-
 		breed.add(choiceA);
 		breed.add(choiceB);
 		
+		//breed button to breed cats
 		JButton breedButton= new JButton("breed");
-		
 		breedButton.addActionListener(new ActionListener() {
 
 			@Override
@@ -207,15 +257,18 @@ public class game {
 					}else {
 						Object f_choice = choiceA.getSelectedItem();
 						Object s_choice = choiceB.getSelectedItem();
+						
+						//initiate value with -1 so if there is an error, it shows nothing
 						int h = -1;
 						int b = -1;
 						int t = -1;
-						if(Math.random()<mutationChance) {
+						
+						if(Math.random()<mutationChance) { //if the cat is mutated, it creates random cat
 							h = (int)(Math.random()*100);
 							b = (int)(Math.random()*100);
 							t = (int)(Math.random()*100);
-							System.out.println("mutation!");
-						}else {
+							
+						}else { //if the cat is not mutated, it gets one trait of either parents
 							if((int)(Math.random()*2)==1) {
 								h = currCats.get(f_choice).getH();
 							}else {
@@ -233,21 +286,21 @@ public class game {
 							}
 						}
 						
-						
+						// remove the cat that is used for breeding
 						currCats.remove(f_choice);
 						currCats.remove(s_choice);
-						
-						collectionContainer.add(addCat(h,b,t, true));
-		                
-		                collection.revalidate();
-									
-						fish-=5;
-						fishnum.setText(""+fish);
-						
 						choiceA.removeItem(f_choice);
 						choiceB.removeItem(f_choice);
 						choiceA.removeItem(s_choice);
 						choiceB.removeItem(s_choice);
+						
+						//add the new cat
+						collectionContainer.add(addCat(h,b,t, true));
+		                collection.revalidate();		
+						fish-=5; //cost 5 fish
+						fishnum.setText(""+fish);
+						
+						//add newly added item.
 						breed.revalidate();
 						choiceA.addItem(id_count-1);
 						choiceB.addItem(id_count-1);
@@ -256,50 +309,51 @@ public class game {
 				}
 			}
 		});
-		
 		breed.add(breedButton);
         
-        JPanel gacha = new JPanel(); //gacha panel
+		//gacha panel
+        JPanel gacha = new JPanel();
         gacha.setBackground(bgColor);
-		JButton gacha_b = new JButton("Roll");
+        Icon gacha_b_image = new ImageIcon("CatImage/gachaButton.png");
+		JButton gacha_b = new JButton(gacha_b_image);
 		gacha_b.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
 				if(checkMoney(fish-10)) {
-
+					//if there is more than 10 fish,
+					//randomly generate cat
 					int h = (int)(Math.random()*100);
 					int b = (int)(Math.random()*100);
 					int t = (int)(Math.random()*100);
 					
-					if(epicPity >= 70) {
+					if(epicPity >= 70) { //if epic pity is full, make fully epic cat. reset all pity
 						h =  (int)(Math.random()*epicChance);
 						b = (int)(Math.random()*epicChance);
 						t = (int)(Math.random()*epicChance);
 						epicPity = 0;
 						rarePity = 0;
-					}else if(rarePity>=40) {
+					}else if(rarePity>=40) { //if rare pity is full, generate new cat. reset rare pity only
 						h = (int)(Math.random()*rareChance);
 						b = (int)(Math.random()*rareChance);
 						t = (int)(Math.random()*rareChance);
 						rarePity = 0;
 					}
 					
-					if(h<epicChance && b<epicChance && t<epicChance) {
+					if(h<epicChance && b<epicChance && t<epicChance) { //if it is full epic cat
 						epicPity  = 0;
 						rarePity = 0;
-					}else if(h<rareChance&& b<rareChance && t<rareChance){
+					}else if(h<rareChance&& b<rareChance && t<rareChance){ //if it is full rare cat
 						epicPity ++;
 						rarePity = 0;
 					}else {
 						rarePity++;
 						epicPity ++;
 					}
-					
 					collectionContainer.add(addCat(h,b,t,true));
 	                
-	                fish-=10;
+	                fish-=10; //costs 10 fish
 					fishnum.setText(""+fish);
 					collectionContainer.validate();
 					breed.validate();
@@ -312,13 +366,14 @@ public class game {
 		});
 		gacha.add(gacha_b);
 		
+		//menu to go from panel to other panel
 		JPanel menu = new JPanel();
-		
 		cardContainer.add(home, "h");
 		cardContainer.add(gacha, "g");
 		cardContainer.add(collection, "c");
 		cardContainer.add(breed, "b");
 		
+		//button for each tab
 		Icon gachaI = new ImageIcon("CatImage/gachaIcon.png");
 		JButton gachaB  = new JButton(gachaI);
 		gachaB.addActionListener(new ActionListener() {
@@ -331,7 +386,6 @@ public class game {
 			}
 			
 		});
-		
 		
 		Icon collectionI = new ImageIcon("CatImage/collectionIcon.png");
 		JButton collectionB  = new JButton(collectionI);
@@ -369,24 +423,20 @@ public class game {
 			
 		});
 		
-		
-		
 		menu.add(homeB);
 		menu.add(collectionB);
 		menu.add(gachaB);
 		menu.add(breedB);
 		menu.setBackground(bgColor);
-		
-		
 		menu.add(fishContainer);
 		
-		ImageIcon homeBg = new ImageIcon(ImageIO.read(new File("CatImage/homeBg.jpg")));
-		
+		//add home Image
+		ImageIcon homeBg = new ImageIcon(ImageIO.read(new File("CatImage/homeBg.jpg")).getScaledInstance(WIDTH-20, HEIGHT-160, 0));
 		JLabel homeBg_l = new JLabel(homeBg);
 		home.add(homeBg_l);
 		home.setBackground(bgColor);
 		
-		
+		//button to add fish
 		JButton addFish = new JButton("FISH");
 		addFish.addActionListener(new ActionListener() {
 
@@ -399,7 +449,7 @@ public class game {
 		});
 		
 		
-		
+		//add everything to main container
 		mainContainer.add(menu);
 		mainContainer.add(addFish);
 		mainContainer.add(cardContainer);
@@ -413,6 +463,7 @@ public class game {
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				try {
+					//when the window close, save.
 					writeFile();
 				} catch (IOException e1) {
 					e1.printStackTrace();
@@ -422,6 +473,7 @@ public class game {
 		mainContainer.setBackground(bgColor);//sky blue
 		mainContainer.setFocusable(true);
 		
+		//get information form the saved text file // current cats available
 		ArrayList<Integer> currentInd = new ArrayList<Integer>();
 	    while(read.hasNext()) {
 	    	String temp = read.nextLine();
@@ -431,12 +483,10 @@ public class game {
 	    		break;
 	    	}
 	    }
-	    System.out.println(currentInd);
 	    
-	    while(read.hasNext()){
-	    	
+	    //cats that are in connection
+	    while(read.hasNext()) {
 	    	String[] temp = read.nextLine().split(" ");
-//	    	System.out.println(Arrays.toString(temp));
 	    	if(currentInd.contains(Integer.parseInt(temp[0]))) {
 	    		collectionContainer.add(addCat( Integer.parseInt(temp[1]),  Integer.parseInt(temp[2]), Integer.parseInt(temp[3]),true));
 	    		choiceA.addItem(id_count-1);
@@ -445,9 +495,8 @@ public class game {
 	    		collectionContainer.add(addCat( Integer.parseInt(temp[1]),  Integer.parseInt(temp[2]), Integer.parseInt(temp[3]),false)) ;
 	    	}
 	    }
-	   
-	    System.out.println(currCats.keySet());
 		home.repaint();
+		read.close();
 	}
 	
 	
