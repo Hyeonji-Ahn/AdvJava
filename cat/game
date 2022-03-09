@@ -484,7 +484,7 @@ public class game {
 	    	}
 	    }
 	    
-	    //cats that are in connection
+	    //cats that are currently available to user
 	    while(read.hasNext()) {
 	    	String[] temp = read.nextLine().split(" ");
 	    	if(currentInd.contains(Integer.parseInt(temp[0]))) {
