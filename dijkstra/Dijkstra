@@ -1,0 +1,209 @@
+package dijkstra;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
+
+public class Dijkstra<E> {
+	
+	HashMap<E, Vertex> g = new HashMap<>(); //hash map with data to each vertex
+	
+	private class Vertex{
+		E info; //information of the data
+		HashSet<Edge> neighbors = new HashSet(); //neighbors that are connected to the vertex
+		
+		public Vertex(E info) { //constructor
+			this.info = info;
+		}
+		
+		public String toString() { 
+			return (String)info; //return the information of the vertex as a string
+		}
+		
+	}
+	
+	private class Edge{
+		Vertex v1, v2; //two edges that are connected through this edge
+		int dist; //information of the edge
+		public Edge(Vertex v1, Vertex v2, int dist) { //constructor
+			this.v1 = v1;
+			this.v2 = v2;
+			this.dist = dist;
+		}
+		
+		public String toString() { //return the information of the vertex
+			return v1.toString() +" - "+dist+" - "+v2.toString();
+		}
+		
+		public int getDist() { //only returns the information
+			return dist;
+		}
+		
+		public Vertex getOtherVertex(Vertex v) { //get the opposite vertex of the input
+			if(v == v1) {
+				return v2;
+			}else {
+				return v1;
+			}
+		}
+	}
+	
+	public void addVertex(E info) { //add vertex to the graph
+		g.put(info, new Vertex(info));
+		
+	}
+
+	public void connect(E info1, E info2, int label) { //connect two vertex with a edge
+		if(g.get(info1)==null || g.get(info2)==null) { //give null pointer exception if the vertex does not exist
+			throw (new NullPointerException());
+		}else {
+			//get information from vertex and create new edge with given informations.
+			Vertex v1 = g.get(info1);
+			Vertex v2 = g.get(info2);
+			Edge lableEdge = new Edge(v1,v2, label);
+			v1.neighbors.add(lableEdge);
+			v2.neighbors.add(lableEdge);
+		}
+		
+	}
+	
+	public Vertex getVertex(E info) { //get a vertex with the information.
+		return g.get(info);
+		
+	}
+	
+	public HashSet getNeighbors(E info) { //get neighbors of the vertex
+		return getVertex(info).neighbors;
+	}
+	
+	public String toString() { //print the whole graph
+		
+		String s = "";
+		
+		for(E key: g.keySet()) {
+			s+= key + "\n";
+			
+			for(Edge e: g.get(key).neighbors){
+				s+= "["+e.getOtherVertex(g.get(key))+" "+e.dist+"] ";
+			}
+			s+="\n";
+		}
+		
+		return s;
+	}
+	
+	public void remove(E info) { //remove vertex from the graph
+		for(Edge v : g.get(info).neighbors) {
+			v.getOtherVertex( g.get(info)).neighbors.remove(v); 
+			//go through whole vertex and remove the selected vertex from the neighbors list of connected vertexes.
+		}
+		g.remove(info);
+	}
+	
+	public int size() {
+		return g.size(); //size of the graph
+	}
+	
+	
+	public String dijkstra(E startInfo, E endInfo) {
+		
+		Vertex start = getVertex(startInfo);
+		Vertex end = getVertex(endInfo);
+		Vertex curr = start;
+		
+		PriorityQueue<Vertex> toVisit = new PriorityQueue<Vertex>();
+		HashMap<Vertex,Boolean> visited = new HashMap<Vertex,Boolean>();
+		HashMap<Vertex,Vertex> leadsTo = new HashMap<Vertex,Vertex>();
+		HashMap<Vertex,Integer> distance = new HashMap<Vertex,Integer>();
+		
+		
+		for(E key: g.keySet()) {
+			distance.put(g.get(key), Integer.MAX_VALUE);  //setting all distance to maximum
+			visited.put(g.get(key),false); //making every vertex not visited yet
+		}
+		
+		toVisit.add(start, 0);  //put start vertex to toVisit
+		distance.put(start, 0);
+		
+		while(toVisit.getSize() != 0) {
+			curr=toVisit.pop();
+			if(curr == end) {
+				return PrintBackTrace(leadsTo,start,end);
+			}else {
+				for(Edge e: curr.neighbors) {
+					Vertex n = e.getOtherVertex(curr); //the neighbor vertex
+					if(!visited.get(n)) { //if it is not visited yet,
+						int newD = distance.get(curr) + e.dist; //calculate the distance from start
+						if(newD<distance.get(n)) { //if the new Distance is shorter
+							distance.put(n, newD);
+							toVisit.add(n, newD);
+							leadsTo.put(n,curr);
+						}
+						
+					}
+				}
+			}
+		}
+		
+		return "yo";
+		
+	}
+	
+	public String PrintBackTrace(HashMap<Vertex,Vertex> map, Vertex start, Vertex end) { //print the back traced list.
+		//back trace the leadsTo list to find the whole path
+		
+		ArrayList<Edge> path = new ArrayList<Edge>(); //ArrayList of edges that lead start to end
+		Vertex curr = end;// start with the end point
+			
+		while(curr != null) { //if the current is not the start vertex,
+					
+			for(Edge e : curr.neighbors) { // look at all neighbors
+				if(e.getOtherVertex(curr)== map.get(curr)) {
+				//if there is a edge in the leadsTo map, that connect the neighbor and the current vertex, add it to the path
+					path.add(0,e);
+				}
+			}
+			curr = map.get(curr); //move the current vertex that current was originated from.
+		}
+		
+		//print the back traced list.
+		String ans = "";
+		
+		int length = 0; //how many times that print line has \n
+		
+		curr = start;
+		int totalDist = 0;
+		
+		for(Edge e: path) { //for every edge in the path list,
+			ans+=curr.toString()+" - "; //start one
+			ans+=e.getDist()+" - "; //what it leads to
+			totalDist += e.getDist();
+			curr = e.getOtherVertex(curr); //change the current position
+			if((ans.length() - length * 70 ) / 70 >0) { // if the string is too long, add \n for readability.
+				length += 1;
+				ans+= "\n";
+			}
+		}
+		ans+=curr.toString(); //add the last vertex to the print statement
+		return ans+ "\nShortest distance between "+curr.toString()+" and "+start+" is "+(totalDist);
+		
+	}
+	
+	
+	public static void main(String[] args) {
+		Dijkstra<String> g = new Dijkstra<String>();
+		g.addVertex("A");
+		g.addVertex("B");
+		g.addVertex("C");
+		g.addVertex("D");
+		g.addVertex("E");
+		g.connect("A", "B", 1);
+		g.connect("A", "C", 2);
+		g.connect("B", "D", 2);
+		g.connect("C", "E", 5);
+		g.connect("D", "E", 3);
+		System.out.println(g.dijkstra("A", "E"));
+		
+	}
+}
