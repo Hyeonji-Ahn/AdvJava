@@ -1,0 +1,84 @@
+package dijkstra;
+
+import java.util.ArrayList;
+
+public class PriorityQueue<E> {
+	private ArrayList<Node> queue = new ArrayList<Node>();
+	private class Node{
+		E data;
+		int priority;
+		public Node(E data, int priority) {
+			this.data = data;
+			this.priority = priority;
+		}
+	}
+	
+	//toString
+	
+	public String toString() {
+		String queue_str="";
+		for(int i=0; i<queue.size(); i++) {
+			queue_str += queue.get(i).data + " ";
+		}
+		return queue_str;
+	}
+	
+	//add new node into the priority queue
+	public void add(E info, int priority) {
+		Node newNode = new Node(info, priority);
+		if(queue.size()==0) {
+			//if the queue is empty
+			queue.add(newNode);
+		}else {
+			for(int i=0; i<queue.size(); i++) {
+				if(queue.get(i).data.equals(info)) { //if the information is already there,
+					queue.remove(i); //replace it
+				}
+			}
+			for(int i=0; i<queue.size(); i++) {
+				//go through the whole queue and if the priority is smaller, add the new node to the queue
+				if(queue.get(i).priority>newNode.priority) {
+					queue.add(i,newNode);
+					return;
+				}
+			}
+			queue.add(newNode);
+		}
+	}
+	
+	//pop
+	//remove the first data in the queue
+	public E pop() {
+		E data = queue.get(0).data;
+		queue.remove(0);
+		return data;
+	}
+	
+	//get priority of the queue
+	public int getPriority(int order) {
+		return queue.get(order).priority;
+	}
+	
+	//get the size of the queue
+	public int getSize() {
+		return queue.size();
+	}
+	
+	//get the data of the queue
+	public E get(int i) {
+		return queue.get(i).data;
+	}
+	
+	public static void main(String[] args) {
+		//for test
+		PriorityQueue<Character> list = new PriorityQueue<Character>();
+		list.add('C', 3);
+		list.add('D', 4);
+		list.add('B', 2);
+		list.add('A', 1);
+		System.out.println(list.toString());
+		list.add('C', 0);
+		System.out.println(list.toString());
+	}
+	
+}
