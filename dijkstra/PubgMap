@@ -1,0 +1,214 @@
+package dijkstra;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+public class PubgMap {
+		
+	private final int WIDTH = 800;
+	private final int MAP_PIN_WIDTH = 20;
+	private boolean isConnecting = false;
+	
+	private class place{
+		private String name;
+		private int x;
+		private int y;
+		private boolean selected;
+
+		public place(String name, int x, int y) {
+			this.name  = name;
+			this.x = x;
+			this.y = y;
+		}
+		
+		public String getName() {
+			return name;
+		}
+		
+		public int getX() {
+			return x;
+		}
+		
+		public int getY() {
+			return y;
+		}
+		
+		public boolean isOn(int m_x, int m_y) {
+			return (m_x>=x && m_x<=x+MAP_PIN_WIDTH && m_y>=y && m_y<=y+MAP_PIN_WIDTH);
+		}
+		
+		public boolean isSelected() {
+			return selected;
+		}
+		
+		public String toString() {
+			return name + " " + x+ " "+y;
+		}
+	}
+
+	
+	private Dijkstra<place> map = new Dijkstra<place>();
+	
+	
+	public double calculateDistance(place p1, place p2) {
+		 return Math.sqrt(Math.pow((p2.getX()-p1.getX()), 2) + Math.pow((p2.getY()-p1.getY()), 2));
+	}
+
+	public void writeFile() throws IOException {
+		//write file for the save function of the game
+		FileWriter out = new FileWriter("pubgMap.txt");
+		for(place p: map.g.keySet()) { //save places
+			out.write(p.toString()+"\n");
+		}
+		out.write("\n");
+		for(place p: map.g.keySet()) { //save connections
+			out.write(p.name+" - ");
+			for(place nei: map.getVertex(p).getNeighbors()){
+				out.write(nei.name+" ");
+			}
+			out.write("\n");
+		}
+		
+		out.close();
+	}
+	
+	public PubgMap() throws IOException {
+		
+		JPanel mainContainer = new JPanel() {
+			public void paint (Graphics g) {
+				super.paint(g);
+				
+				for(place p: map.g.keySet()) {
+					try {
+						if(p.isSelected()) {
+							g.drawImage(ImageIO.read(new File("mapPin_selected.png")).getScaledInstance(MAP_PIN_WIDTH, MAP_PIN_WIDTH, 0), p.getX(), p.getY(), null);
+						}else {
+							g.drawImage(ImageIO.read(new File("mapPin.png")).getScaledInstance(MAP_PIN_WIDTH, MAP_PIN_WIDTH, 0), p.getX(), p.getY(), null);
+						}
+						
+						for(place nei: map.getVertex(p).getNeighbors()) {
+							g.drawLine(p.getX()-MAP_PIN_WIDTH/2, p.getY()-MAP_PIN_WIDTH, nei.getX()-MAP_PIN_WIDTH/2, nei.getY()-MAP_PIN_WIDTH);
+						}
+						
+						g.setColor(Color.white);
+						g.drawString(p.getName(), p.getX(), p.getY());
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+		ImageIcon bg = new ImageIcon(ImageIO.read(new File("erangel.jpg")).getScaledInstance(WIDTH, WIDTH, 0));
+		JLabel backGround = new JLabel(bg);
+		mainContainer.add(backGround);
+		
+		JFrame frame = new JFrame();
+		
+		frame.setSize(WIDTH, WIDTH);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(mainContainer);
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(true);
+		frame.setVisible(true);
+		frame.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				//when the window close, save.
+				try {
+					writeFile();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+	    });
+		mainContainer.setFocusable(true);
+		mainContainer.setBackground(Color.blue);
+		mainContainer.addMouseListener(new MouseListener() {
+			place p1 = null;
+			place p2 = null;
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+
+				for(place p:map.g.keySet()) {
+					if(p.isOn(e.getX(), e.getY())){
+						isConnecting = true;
+						p.selected = !p.selected;
+						if(p.selected) {
+							if(p1==null) {
+								p1 = p;
+								System.out.println("p1:"+ p1.getName());
+							}else {
+								p2 = p;
+								System.out.println("p2:"+ p2.getName());
+							}
+						}
+					}
+				}
+				
+				if(!isConnecting) {
+					String name = JOptionPane.showInputDialog("What is the place's name?");
+					int newX  = e.getX();
+					int newY = e.getY();
+					map.addVertex(new place(name,newX-MAP_PIN_WIDTH/2,newY-MAP_PIN_WIDTH));
+				}else {
+					if(p2 != null) {
+						map.connect(p1, p2, (int)calculateDistance(p1,p2));
+						System.out.println(p1.getName() +" - " + p2.getName());
+						isConnecting = false;
+						p1 = null;
+						p2 = null;
+					}
+				}
+				
+				mainContainer.repaint();
+				
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
+		
+	}
+	
+	public static void main(String[] args) throws IOException {
+		PubgMap runner = new PubgMap();
+	}
+}
