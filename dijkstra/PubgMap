@@ -1,6 +1,7 @@
 package dijkstra;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -10,6 +11,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -63,7 +66,7 @@ public class PubgMap {
 
 	
 	private Dijkstra<place> map = new Dijkstra<place>();
-	
+	private HashMap<String, place> placeIndex = new HashMap<String, place>();
 	
 	public double calculateDistance(place p1, place p2) {
 		 return Math.sqrt(Math.pow((p2.getX()-p1.getX()), 2) + Math.pow((p2.getY()-p1.getY()), 2));
@@ -77,7 +80,7 @@ public class PubgMap {
 		}
 		out.write("\n");
 		for(place p: map.g.keySet()) { //save connections
-			out.write(p.name+" - ");
+			out.write(p.name+" ");
 			for(place nei: map.getVertex(p).getNeighbors()){
 				out.write(nei.name+" ");
 			}
@@ -89,6 +92,34 @@ public class PubgMap {
 	
 	public PubgMap() throws IOException {
 		
+
+		File f = new File("pubgMap.txt");
+	    Scanner read = new Scanner(f);
+	    
+	    while(read.hasNext()) {
+	    	String[] temp = read.nextLine().split(" ");
+	    	if(temp.length!=1) {
+	    		place Nplace = new place(temp[0],Integer.parseInt(temp[1]),Integer.parseInt(temp[2]));
+	    		map.addVertex(Nplace);
+	    		placeIndex.put(temp[0], Nplace);
+	    	}else {
+	    		break;
+	    	}
+	    }
+	    
+	    while(read.hasNext()) {
+	    	String[] temp = read.nextLine().split(" ");
+	    	if(temp.length!=1) {
+	    		for(int i=1; i<temp.length; i++) {
+	    			if(!map.g.get(placeIndex.get(temp[0])).getNeighbors().contains(placeIndex.get(temp[i]))) {
+	    				map.connect(map.g.get(placeIndex.get(temp[0])).info, map.g.get(placeIndex.get(temp[i])).info, (int)calculateDistance(map.g.get(placeIndex.get(temp[0])).info, map.g.get(placeIndex.get(temp[i])).info));
+	    			}
+	    		}
+	    	}else {
+	    		break;
+	    	}
+	    }
+	    
 		JPanel mainContainer = new JPanel() {
 			public void paint (Graphics g) {
 				super.paint(g);
@@ -102,10 +133,12 @@ public class PubgMap {
 						}
 						
 						for(place nei: map.getVertex(p).getNeighbors()) {
-							g.drawLine(p.getX()-MAP_PIN_WIDTH/2, p.getY()-MAP_PIN_WIDTH, nei.getX()-MAP_PIN_WIDTH/2, nei.getY()-MAP_PIN_WIDTH);
+							g.setColor(Color.red);
+							g.drawLine(p.getX()+MAP_PIN_WIDTH/2, p.getY()+MAP_PIN_WIDTH, nei.getX()+MAP_PIN_WIDTH/2, nei.getY()+MAP_PIN_WIDTH);
 						}
 						
 						g.setColor(Color.white);
+						g.setFont(new Font ("Comic Sans", 1, 17));
 						g.drawString(p.getName(), p.getX(), p.getY());
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -131,7 +164,6 @@ public class PubgMap {
 				try {
 					writeFile();
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
@@ -139,12 +171,17 @@ public class PubgMap {
 		mainContainer.setFocusable(true);
 		mainContainer.setBackground(Color.blue);
 		mainContainer.addMouseListener(new MouseListener() {
+			
 			place p1 = null;
 			place p2 = null;
+			
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				
+			}
 
+			@Override
+			public void mousePressed(MouseEvent e) {
 				for(place p:map.g.keySet()) {
 					if(p.isOn(e.getX(), e.getY())){
 						isConnecting = true;
@@ -152,10 +189,8 @@ public class PubgMap {
 						if(p.selected) {
 							if(p1==null) {
 								p1 = p;
-								System.out.println("p1:"+ p1.getName());
 							}else {
 								p2 = p;
-								System.out.println("p2:"+ p2.getName());
 							}
 						}
 					}
@@ -169,39 +204,27 @@ public class PubgMap {
 				}else {
 					if(p2 != null) {
 						map.connect(p1, p2, (int)calculateDistance(p1,p2));
-						System.out.println(p1.getName() +" - " + p2.getName());
 						isConnecting = false;
 						p1 = null;
 						p2 = null;
+						for(place p: map.g.keySet()) {
+							p.selected = false;
+						}
 					}
 				}
-				
 				mainContainer.repaint();
-				
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
 			
 		});
