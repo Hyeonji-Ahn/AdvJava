@@ -10,7 +10,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -27,62 +26,26 @@ public class PubgMap {
 	private final int MAP_PIN_WIDTH = 20;
 	private boolean isConnecting = false;
 	
-	private class place{
-		private String name;
-		private int x;
-		private int y;
-		private boolean selected;
-
-		public place(String name, int x, int y) {
-			this.name  = name;
-			this.x = x;
-			this.y = y;
-		}
-		
-		public String getName() {
-			return name;
-		}
-		
-		public int getX() {
-			return x;
-		}
-		
-		public int getY() {
-			return y;
-		}
-		
-		public boolean isOn(int m_x, int m_y) {
-			return (m_x>=x && m_x<=x+MAP_PIN_WIDTH && m_y>=y && m_y<=y+MAP_PIN_WIDTH);
-		}
-		
-		public boolean isSelected() {
-			return selected;
-		}
-		
-		public String toString() {
-			return name + " " + x+ " "+y;
-		}
-	}
-
+	private Dijkstra map = new Dijkstra("PubgMap.txt");
 	
-	private Dijkstra<place> map = new Dijkstra<place>();
-	private HashMap<String, place> placeIndex = new HashMap<String, place>();
-	
-	public double calculateDistance(place p1, place p2) {
-		 return Math.sqrt(Math.pow((p2.getX()-p1.getX()), 2) + Math.pow((p2.getY()-p1.getY()), 2));
+	public int calculateDistance(String p1, String p2) {
+		System.out.println();
+		System.out.println(p1);
+		System.out.println(p2);
+		 return (int)Math.sqrt(Math.pow((Integer.parseInt(p2.split(",")[1])-Integer.parseInt(p1.split(",")[1])), 2) + Math.pow((Integer.parseInt(p2.split(",")[2])-(Integer.parseInt(p1.split(",")[2]))), 2));
 	}
 
 	public void writeFile() throws IOException {
 		//write file for the save function of the game
 		FileWriter out = new FileWriter("pubgMap.txt");
-		for(place p: map.g.keySet()) { //save places
+		for(String p: map.g.keySet()) { //save places
 			out.write(p.toString()+"\n");
 		}
 		out.write("\n");
-		for(place p: map.g.keySet()) { //save connections
-			out.write(p.name+" ");
-			for(place nei: map.getVertex(p).getNeighbors()){
-				out.write(nei.name+" ");
+		for(String p: map.g.keySet()) { //save connections
+			out.write(p+" ");
+			for(String nei: map.getVertex(p).getNeighbors()){
+				out.write(nei+" "+calculateDistance(p,nei)+" ");
 			}
 			out.write("\n");
 		}
@@ -92,58 +55,9 @@ public class PubgMap {
 	
 	public PubgMap() throws IOException {
 		
-
-		File f = new File("pubgMap.txt");
-	    Scanner read = new Scanner(f);
-	    
-	    while(read.hasNext()) {
-	    	String[] temp = read.nextLine().split(" ");
-	    	if(temp.length!=1) {
-	    		place Nplace = new place(temp[0],Integer.parseInt(temp[1]),Integer.parseInt(temp[2]));
-	    		map.addVertex(Nplace);
-	    		placeIndex.put(temp[0], Nplace);
-	    	}else {
-	    		break;
-	    	}
-	    }
-	    
-	    while(read.hasNext()) {
-	    	String[] temp = read.nextLine().split(" ");
-	    	if(temp.length!=1) {
-	    		for(int i=1; i<temp.length; i++) {
-	    			if(!map.g.get(placeIndex.get(temp[0])).getNeighbors().contains(placeIndex.get(temp[i]))) {
-	    				map.connect(map.g.get(placeIndex.get(temp[0])).info, map.g.get(placeIndex.get(temp[i])).info, (int)calculateDistance(map.g.get(placeIndex.get(temp[0])).info, map.g.get(placeIndex.get(temp[i])).info));
-	    			}
-	    		}
-	    	}else {
-	    		break;
-	    	}
-	    }
-	    
 		JPanel mainContainer = new JPanel() {
 			public void paint (Graphics g) {
-				super.paint(g);
-				
-				for(place p: map.g.keySet()) {
-					try {
-						if(p.isSelected()) {
-							g.drawImage(ImageIO.read(new File("mapPin_selected.png")).getScaledInstance(MAP_PIN_WIDTH, MAP_PIN_WIDTH, 0), p.getX(), p.getY(), null);
-						}else {
-							g.drawImage(ImageIO.read(new File("mapPin.png")).getScaledInstance(MAP_PIN_WIDTH, MAP_PIN_WIDTH, 0), p.getX(), p.getY(), null);
-						}
-						
-						for(place nei: map.getVertex(p).getNeighbors()) {
-							g.setColor(Color.red);
-							g.drawLine(p.getX()+MAP_PIN_WIDTH/2, p.getY()+MAP_PIN_WIDTH, nei.getX()+MAP_PIN_WIDTH/2, nei.getY()+MAP_PIN_WIDTH);
-						}
-						
-						g.setColor(Color.white);
-						g.setFont(new Font ("Comic Sans", 1, 17));
-						g.drawString(p.getName(), p.getX(), p.getY());
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+				map.paint(g);
 			}
 		};
 		ImageIcon bg = new ImageIcon(ImageIO.read(new File("erangel.jpg")).getScaledInstance(WIDTH, WIDTH, 0));
@@ -172,8 +86,8 @@ public class PubgMap {
 		mainContainer.setBackground(Color.blue);
 		mainContainer.addMouseListener(new MouseListener() {
 			
-			place p1 = null;
-			place p2 = null;
+			String p1 = null;
+			String p2 = null;
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -182,11 +96,11 @@ public class PubgMap {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				for(place p:map.g.keySet()) {
-					if(p.isOn(e.getX(), e.getY())){
+				for(String p:map.g.keySet()) {
+					if(map.g.get(p).isOn(e.getX(), e.getY())){
 						isConnecting = true;
-						p.selected = !p.selected;
-						if(p.selected) {
+						map.g.get(p).changeSel();
+						if(map.g.get(p).isSelected()) {
 							if(p1==null) {
 								p1 = p;
 							}else {
@@ -198,17 +112,24 @@ public class PubgMap {
 				
 				if(!isConnecting) {
 					String name = JOptionPane.showInputDialog("What is the place's name?");
+					for(String p: map.g.keySet()) {
+						if(map.g.get(p).getName() == name) {
+							JOptionPane.showMessageDialog(mainContainer, "Places cannot have same name!", "Error", JOptionPane.ERROR_MESSAGE);
+						}
+					}
 					int newX  = e.getX();
 					int newY = e.getY();
-					map.addVertex(new place(name,newX-MAP_PIN_WIDTH/2,newY-MAP_PIN_WIDTH));
+					map.addVertex(name+","+(newX-MAP_PIN_WIDTH/2)+","+(newY-MAP_PIN_WIDTH));
 				}else {
 					if(p2 != null) {
 						map.connect(p1, p2, (int)calculateDistance(p1,p2));
 						isConnecting = false;
 						p1 = null;
 						p2 = null;
-						for(place p: map.g.keySet()) {
-							p.selected = false;
+						for(String p: map.g.keySet()) {
+							if(map.g.get(p).isSelected()) {
+								map.g.get(p).changeSel();
+							}
 						}
 					}
 				}
