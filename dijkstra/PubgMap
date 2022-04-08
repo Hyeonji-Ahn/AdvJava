@@ -1,22 +1,14 @@
 package dijkstra;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Scanner;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -26,7 +18,7 @@ public class PubgMap {
 	private final int MAP_PIN_WIDTH = 20;
 	private boolean isConnecting = false;
 	
-	private Dijkstra map = new Dijkstra("PubgMap.txt");
+	private Dijkstra map = new Dijkstra("pubgMap.txt");
 	
 	public int calculateDistance(String p1, String p2) {
 		System.out.println();
@@ -57,12 +49,14 @@ public class PubgMap {
 		
 		JPanel mainContainer = new JPanel() {
 			public void paint (Graphics g) {
-				map.paint(g);
+				try {
+					map.paint(g);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		};
-		ImageIcon bg = new ImageIcon(ImageIO.read(new File("erangel.jpg")).getScaledInstance(WIDTH, WIDTH, 0));
-		JLabel backGround = new JLabel(bg);
-		mainContainer.add(backGround);
+		
 		
 		JFrame frame = new JFrame();
 		
@@ -83,7 +77,6 @@ public class PubgMap {
 			}
 	    });
 		mainContainer.setFocusable(true);
-		mainContainer.setBackground(Color.blue);
 		mainContainer.addMouseListener(new MouseListener() {
 			
 			String p1 = null;
