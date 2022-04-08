@@ -1,0 +1,94 @@
+package dijkstra;
+
+import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class PubgGps {
+	
+	private final int WIDTH = 800;
+	private Dijkstra map;
+	
+	
+	public PubgGps() throws FileNotFoundException{
+		map=new Dijkstra("pubgMap.txt");
+		
+		JPanel mainContainer = new JPanel() {
+			public void paint (Graphics g) {
+				try {
+					map.paint(g);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		
+		JFrame frame = new JFrame();
+		
+		frame.setSize(WIDTH, WIDTH);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(mainContainer);
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(true);
+		frame.setVisible(true);
+		mainContainer.setFocusable(true);
+		mainContainer.addMouseListener(new MouseListener() {
+			String p1 = null;
+			String p2 = null;
+			@Override
+			public void mouseClicked(MouseEvent e) {
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				for(String p:map.g.keySet()) {
+					if(map.g.get(p).isOn(e.getX(), e.getY())){
+						map.g.get(p).changeSel();
+						if(map.g.get(p).isSelected()) {
+							if(p1==null) {
+								p1 = p;
+							}else {
+								p2 = p;
+							}
+						}
+					}
+				}
+				if(p2 != null) {
+					System.out.println(map.dijkstra(p1, p2));
+					p1 = null;
+					p2 = null;
+					for(String p: map.g.keySet()) {
+						if(map.g.get(p).isSelected()) {
+							map.g.get(p).changeSel();
+						}
+					}
+				}
+				mainContainer.repaint();
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+			
+		});
+	}
+	
+	public static void main(String[] args) throws FileNotFoundException  {
+		PubgGps runner  = new PubgGps();
+	}
+}
