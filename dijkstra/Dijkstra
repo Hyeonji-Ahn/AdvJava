@@ -3,156 +3,320 @@ package dijkstra;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.Image;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
-public class PubgMap {
-		
+
+public class Dijkstra{
+	
 	private final int WIDTH = 800;
+	HashMap<String, Vertex> g = new HashMap<>(); //hash map with data to each vertex
 	private final int MAP_PIN_WIDTH = 20;
-	private boolean isConnecting = false;
 	
-	private Dijkstra map = new Dijkstra("PubgMap.txt");
-	
-	public int calculateDistance(String p1, String p2) {
-		System.out.println();
-		System.out.println(p1);
-		System.out.println(p2);
-		 return (int)Math.sqrt(Math.pow((Integer.parseInt(p2.split(",")[1])-Integer.parseInt(p1.split(",")[1])), 2) + Math.pow((Integer.parseInt(p2.split(",")[2])-(Integer.parseInt(p1.split(",")[2]))), 2));
-	}
-
-	public void writeFile() throws IOException {
-		//write file for the save function of the game
-		FileWriter out = new FileWriter("pubgMap.txt");
-		for(String p: map.g.keySet()) { //save places
-			out.write(p.toString()+"\n");
-		}
-		out.write("\n");
-		for(String p: map.g.keySet()) { //save connections
-			out.write(p+" ");
-			for(String nei: map.getVertex(p).getNeighbors()){
-				out.write(nei+" "+calculateDistance(p,nei)+" ");
-			}
-			out.write("\n");
+	class Vertex{
+		String info; //information of the data
+		private int x;
+		private int y;
+		private boolean selected;
+		HashSet<Edge> neighbors = new HashSet(); //neighbors that are connected to the vertex
+		
+		public Vertex(String info) { //constructor
+			this.info = info.split(",")[0];
+			x = Integer.parseInt(info.split(",")[1]);
+			y = Integer.parseInt(info.split(",")[2]);
 		}
 		
-		out.close();
+		public String getName() {
+			return info;
+		}
+		public int getX() {
+			return x;
+		}
+		
+		public int getY() {
+			return y;
+		}
+		
+		public boolean isOn(int m_x, int m_y) {
+			return (m_x>=x && m_x<=x+MAP_PIN_WIDTH && m_y>=y && m_y<=y+MAP_PIN_WIDTH);
+		}
+		
+		public boolean isSelected() {
+			return selected;
+		}
+		
+		public String toString() {
+			return info + "," + x+ ","+y;
+		}
+		
+		public ArrayList<String> getNeighbors() {
+			ArrayList<String> nei = new ArrayList<String>();
+			for(Edge e: neighbors) {
+				nei.add(e.getOtherVertex(this).toString());
+			}
+			return nei;
+		}
+		
+		public void changeSel() {
+			selected = !selected;
+		}
+		
 	}
 	
-	public PubgMap() throws IOException {
+	private class Edge{
+		Vertex v1, v2; //two edges that are connected through this edge
+		int dist; //information of the edge
+		boolean selected;
+		public Edge(Vertex v1, Vertex v2, int dist) { //constructor
+			this.v1 = v1;
+			this.v2 = v2;
+			this.dist = dist;
+		}
 		
-		JPanel mainContainer = new JPanel() {
-			public void paint (Graphics g) {
-				map.paint(g);
-			}
-		};
-		ImageIcon bg = new ImageIcon(ImageIO.read(new File("erangel.jpg")).getScaledInstance(WIDTH, WIDTH, 0));
-		JLabel backGround = new JLabel(bg);
-		mainContainer.add(backGround);
+		public String toString() { //return the information of the vertex
+			return v1.toString() +" - "+dist+" - "+v2.toString();
+		}
 		
-		JFrame frame = new JFrame();
+		public int getDist() { //only returns the information
+			return dist;
+		}
 		
-		frame.setSize(WIDTH, WIDTH);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.add(mainContainer);
-		frame.setLocationRelativeTo(null);
-		frame.setResizable(true);
-		frame.setVisible(true);
-		frame.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
-				//when the window close, save.
-				try {
-					writeFile();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+		public Vertex getOtherVertex(Vertex v) { //get the opposite vertex of the input
+			if(v == v1) {
+				return v2;
+			}else {
+				return v1;
 			}
-	    });
-		mainContainer.setFocusable(true);
-		mainContainer.setBackground(Color.blue);
-		mainContainer.addMouseListener(new MouseListener() {
-			
-			String p1 = null;
-			String p2 = null;
-			
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				
-			}
+		}
+	}
+	
+	
+	public void addVertex(String info) { //add vertex to the graph
+		g.put(info, new Vertex(info));
+		
+	}
 
-			@Override
-			public void mousePressed(MouseEvent e) {
-				for(String p:map.g.keySet()) {
-					if(map.g.get(p).isOn(e.getX(), e.getY())){
-						isConnecting = true;
-						map.g.get(p).changeSel();
-						if(map.g.get(p).isSelected()) {
-							if(p1==null) {
-								p1 = p;
-							}else {
-								p2 = p;
-							}
+	public void connect(String info1, String info2, int label) { //connect two vertex with a edge
+		if(g.get(info1)==null || g.get(info2)==null) { //give null pointer exception if the vertex does not exist
+			throw (new NullPointerException());
+		}else {
+			//get information from vertex and create new edge with given informations.
+			Vertex v1 = g.get(info1);
+			Vertex v2 = g.get(info2);
+			Edge lableEdge = new Edge(v1,v2, label);
+			v1.neighbors.add(lableEdge);
+			v2.neighbors.add(lableEdge);
+		}
+		
+	}
+	
+	public Vertex getVertex(String info) { //get a vertex with the information.
+		return g.get(info);
+		
+	}
+	
+	public HashSet getNeighbors(String info) { //get neighbors of the vertex
+		return getVertex(info).neighbors;
+	}
+	
+	public String toString() { //print the whole graph
+		
+		String s = "";
+		
+		for(String key: g.keySet()) {
+			s+= key + "\n";
+			
+			for(Edge e: g.get(key).neighbors){
+				s+= "["+e.getOtherVertex(g.get(key))+" "+e.dist+"] ";
+			}
+			s+="\n";
+		}
+		
+		return s;
+	}
+	
+	public void remove(String info) { //remove vertex from the graph
+		for(Edge v : g.get(info).neighbors) {
+			v.getOtherVertex( g.get(info)).neighbors.remove(v); 
+			//go through whole vertex and remove the selected vertex from the neighbors list of connected vertexes.
+		}
+		g.remove(info);
+	}
+	
+	public int size() {
+		return g.size(); //size of the graph
+	}
+	
+	
+	public ArrayList<String> dijkstra(String startInfo,String endInfo) {
+
+		
+		Vertex start = getVertex(startInfo);
+		Vertex end = getVertex(endInfo);
+		Vertex curr = start;
+		
+		PriorityQueue<Vertex> toVisit = new PriorityQueue<Vertex>();
+		HashMap<Vertex,Boolean> visited = new HashMap<Vertex,Boolean>();
+		HashMap<Vertex,Vertex> leadsTo = new HashMap<Vertex,Vertex>();
+		HashMap<Vertex,Integer> distance = new HashMap<Vertex,Integer>();
+		
+		
+		for(String key: g.keySet()) {
+			distance.put(g.get(key), Integer.MAX_VALUE);  //setting all distance to maximum
+			visited.put(g.get(key),false); //making every vertex not visited yet
+			for(Edge e: g.get(key).neighbors){
+				e.selected = false;
+			}
+		}
+		
+		toVisit.add(start, 0);  //put start vertex to toVisit
+		distance.put(start, 0);
+		
+		while(toVisit.getSize() != 0) {
+			curr=toVisit.pop();
+			if(curr == end) {
+				return PrintBackTrace(leadsTo,start,end);
+			}else {
+				for(Edge e: curr.neighbors) {
+					Vertex n = e.getOtherVertex(curr); //the neighbor vertex
+					if(!visited.get(n)) { //if it is not visited yet,
+						int newD = distance.get(curr) + e.dist; //calculate the distance from start
+						if(newD<distance.get(n)) { //if the new Distance is shorter
+							distance.put(n, newD);
+							toVisit.add(n, newD);
+							leadsTo.put(n,curr);
 						}
+						
 					}
 				}
-				
-				if(!isConnecting) {
-					String name = JOptionPane.showInputDialog("What is the place's name?");
-					for(String p: map.g.keySet()) {
-						if(map.g.get(p).getName() == name) {
-							JOptionPane.showMessageDialog(mainContainer, "Places cannot have same name!", "Error", JOptionPane.ERROR_MESSAGE);
-						}
-					}
-					int newX  = e.getX();
-					int newY = e.getY();
-					map.addVertex(name+","+(newX-MAP_PIN_WIDTH/2)+","+(newY-MAP_PIN_WIDTH));
+			}
+		}
+		
+		return null;
+		
+	}
+	
+	public ArrayList<String> PrintBackTrace(HashMap<Vertex,Vertex> map, Vertex start, Vertex end) { //print the back traced list.
+		//back trace the leadsTo list to find the whole path
+		
+		ArrayList<Edge> path = new ArrayList<Edge>(); //ArrayList of edges that lead start to end
+		Vertex curr = end;// start with the end point
+			
+		while(curr != null) { //if the current is not the start vertex,
+					
+			for(Edge e : curr.neighbors) { // look at all neighbors
+				if(e.getOtherVertex(curr)== map.get(curr)) {
+				//if there is a edge in the leadsTo map, that connect the neighbor and the current vertex, add it to the path
+					path.add(0,e);
+				}
+			}
+			curr = map.get(curr); //move the current vertex that current was originated from.
+		}
+		
+		ArrayList<String> ans = new ArrayList<String>();
+		curr = start;
+		
+		for(Edge e: path) {
+			e.selected = true;
+			ans.add(curr.toString());
+			curr = e.getOtherVertex(curr);
+		}
+		ans.add(curr.toString());
+		
+		return ans;
+//		
+//		//print the back traced list.
+//		String ans = "";
+//		
+//		int length = 0; //how many times that print line has \n
+//		
+//		curr = start;
+//		int totalDist = 0;
+//		
+//		for(Edge e: path) { //for every edge in the path list,
+//			ans+=curr.toString()+" - "; //start one
+//			ans+=e.getDist()+" - "; //what it leads to
+//			totalDist += e.getDist();
+//			curr = e.getOtherVertex(curr); //change the current position
+//			if((ans.length() - length * 70 ) / 70 >0) { // if the string is too long, add \n for readability.
+//				length += 1;
+//				ans+= "\n";
+//			}
+//		}
+//		ans+=curr.toString(); //add the last vertex to the print statement
+//		return ans+ "\nShortest distance between "+curr.toString()+" and "+start+" is "+(totalDist);
+		
+	}
+	
+	public Dijkstra(String fileName) throws FileNotFoundException{
+		File f = new File(fileName);
+	    Scanner read = new Scanner(f);
+	    
+	    while(read.hasNext()) {
+	    	String temp = read.nextLine();
+	    	if(temp.length()!=0) {
+	    		addVertex(temp);
+	    	}else {
+	    		break;
+	    	}
+	    }
+	    
+	    while(read.hasNext()) {
+	    	String[] temp = read.nextLine().split(" ");
+	    	if(temp.length!=1) {
+	    		for(int i=1; i<temp.length; i+=2) {
+	    			if(!g.get(temp[0]).getNeighbors().contains(temp[i])) {
+	    				connect(g.get(temp[0]).toString(), g.get(temp[i]).toString(), Integer.parseInt(temp[i+1]));
+	    			}
+	    		}
+	    	}else {
+	    		break;
+	    	}
+	    }
+	    
+	}
+	
+	public void paint (Graphics g1) throws IOException {
+		g1.drawImage(ImageIO.read(new File("erangel.jpg")).getScaledInstance(WIDTH, WIDTH, Image.SCALE_SMOOTH), 0, 0, WIDTH, WIDTH, null);
+		
+		for(String p: g.keySet()) {
+			try {
+				if(g.get(p).isSelected()) {
+					g1.drawImage(ImageIO.read(new File("mapPin_selected.png")).getScaledInstance(MAP_PIN_WIDTH, MAP_PIN_WIDTH, 0), g.get(p).getX(), g.get(p).getY(), null);
 				}else {
-					if(p2 != null) {
-						map.connect(p1, p2, (int)calculateDistance(p1,p2));
-						isConnecting = false;
-						p1 = null;
-						p2 = null;
-						for(String p: map.g.keySet()) {
-							if(map.g.get(p).isSelected()) {
-								map.g.get(p).changeSel();
-							}
-						}
-					}
+					g1.drawImage(ImageIO.read(new File("mapPin.png")).getScaledInstance(MAP_PIN_WIDTH, MAP_PIN_WIDTH, 0), g.get(p).getX(), g.get(p).getY(), null);
 				}
-				mainContainer.repaint();
+				
+				for(Edge nei: g.get(p).neighbors) {
+					if(nei.selected) {
+						g1.setColor(Color.cyan);
+					}else {
+						g1.setColor(Color.red);
+					}
+					g1.drawLine(g.get(p).getX()+MAP_PIN_WIDTH/2, g.get(p).getY()+MAP_PIN_WIDTH, nei.getOtherVertex(g.get(p)).getX()+MAP_PIN_WIDTH/2, nei.getOtherVertex(g.get(p)).getY()+MAP_PIN_WIDTH);
+				}
+				
+				g1.setColor(Color.white);
+				g1.setFont(new Font ("Comic Sans", 1, 17));
+				g1.drawString(g.get(p).getName(), g.get(p).getX(), g.get(p).getY());
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-			}
-			
-		});
-		
+		}
 	}
 	
-	public static void main(String[] args) throws IOException {
-		PubgMap runner = new PubgMap();
+	
+	public static void main(String[] args) throws FileNotFoundException {
+		Dijkstra graph = new Dijkstra("DijkstraTest");
+		System.out.println(graph.dijkstra("A,a", "E,e"));
+		
 	}
 }
