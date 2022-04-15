@@ -21,10 +21,7 @@ public class PubgMap {
 	private Dijkstra map = new Dijkstra("pubgMap.txt");
 	
 	public int calculateDistance(String p1, String p2) {
-		System.out.println();
-		System.out.println(p1);
-		System.out.println(p2);
-		 return (int)Math.sqrt(Math.pow((Integer.parseInt(p2.split(",")[1])-Integer.parseInt(p1.split(",")[1])), 2) + Math.pow((Integer.parseInt(p2.split(",")[2])-(Integer.parseInt(p1.split(",")[2]))), 2));
+		return (int)Math.sqrt(Math.pow((Integer.parseInt(p2.split(",")[1])-Integer.parseInt(p1.split(",")[1])), 2) + Math.pow((Integer.parseInt(p2.split(",")[2])-(Integer.parseInt(p1.split(",")[2]))), 2));
 	}
 
 	public void writeFile() throws IOException {
