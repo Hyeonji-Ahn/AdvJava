@@ -39,7 +39,6 @@ public class PubgGps {
 			}
 		};
 		
-//		JPanel dist_p = new JPanel();
 		JLabel dist_val = new JLabel("distance:"+dist);
 		
 		
