@@ -298,6 +298,7 @@ public class Dijkstra{
 				for(Edge nei: g.get(p).neighbors) {
 					if(nei.selected) {
 						g1.setColor(Color.cyan);
+						g1.drawString(nei.dist+"", (g.get(p).getX()+MAP_PIN_WIDTH/2+nei.getOtherVertex(g.get(p)).getX()+MAP_PIN_WIDTH/2)/2, (g.get(p).getY()+MAP_PIN_WIDTH+nei.getOtherVertex(g.get(p)).getY()+MAP_PIN_WIDTH)/2);
 					}else {
 						g1.setColor(Color.red);
 					}
