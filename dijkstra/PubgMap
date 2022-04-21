@@ -86,11 +86,12 @@ public class PubgMap {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
+				//when the mouse is pressed, check all the location whether it is clicked or not
 				for(String p:map.g.keySet()) {
-					if(map.g.get(p).isOn(e.getX(), e.getY())){
+					if(map.g.get(p).isOn(e.getX(), e.getY())){ //if it is clicked,
 						isConnecting = true;
 						map.g.get(p).changeSel();
-						if(map.g.get(p).isSelected()) {
+						if(map.g.get(p).isSelected()) { //save the location
 							if(p1==null) {
 								p1 = p;
 							}else {
@@ -100,7 +101,7 @@ public class PubgMap {
 					}
 				}
 				
-				if(!isConnecting) {
+				if(!isConnecting) { //if the clicked location is not on the map, save the new location
 					String name = JOptionPane.showInputDialog("What is the place's name?");
 					for(String p: map.g.keySet()) {
 						if(map.g.get(p).getName() == name) {
@@ -109,11 +110,12 @@ public class PubgMap {
 					}
 					int newX  = e.getX();
 					int newY = e.getY();
-					map.addVertex(name+","+(newX-MAP_PIN_WIDTH/2)+","+(newY-MAP_PIN_WIDTH));
+					map.addVertex(name+","+(newX-MAP_PIN_WIDTH/2)+","+(newY-MAP_PIN_WIDTH)); //add vertex to the map
+					
 				}else {
-					if(p2 != null) {
+					if(p2 != null) { //if two placed is clicked, connect them.
 						map.connect(p1, p2, (int)calculateDistance(p1,p2));
-						isConnecting = false;
+						isConnecting = false; //reset to the initial state, where no location is selected.
 						p1 = null;
 						p2 = null;
 						for(String p: map.g.keySet()) {
