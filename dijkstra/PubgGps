@@ -20,16 +20,15 @@ public class PubgGps {
 	private Dijkstra map;
 	private int dist = 0;
 	
-	public int calculateDistance(String p1, String p2) {
+	public int calculateDistance(String p1, String p2) { //calculate the distance
 		 return (int)Math.sqrt(Math.pow((Integer.parseInt(p2.split(",")[1])-Integer.parseInt(p1.split(",")[1])), 2) + Math.pow((Integer.parseInt(p2.split(",")[2])-(Integer.parseInt(p1.split(",")[2]))), 2));
 	}
 	
 	public PubgGps() throws FileNotFoundException{
 		
-		
 		map=new Dijkstra("pubgMap.txt");
 		
-		JPanel mainContainer = new JPanel() {
+		JPanel mainContainer = new JPanel() { //container with map
 			public void paint (Graphics g) {
 				try {
 					map.paint(g);
@@ -39,11 +38,10 @@ public class PubgGps {
 			}
 		};
 		
-		JLabel dist_val = new JLabel("distance:"+dist);
-		
+		JLabel dist_val = new JLabel("distance:"+dist); //get the total distance
 		
 		JFrame frame = new JFrame();
-		JPanel wholeContainer = new JPanel();
+		JPanel wholeContainer = new JPanel(); //container with distance and map
 		
 		frame.setSize(WIDTH,WIDTH);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -66,7 +64,7 @@ public class PubgGps {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if(p1 == null) {
+				if(p1 == null) { //if nothing is selected yet, make all the location not selected
 					for(String p: map.g.keySet()) {
 						if(map.g.get(p).isSelected()) {
 							map.g.get(p).changeSel();
@@ -74,7 +72,7 @@ public class PubgGps {
 					}
 				}
 				
-				for(String p:map.g.keySet()) {
+				for(String p:map.g.keySet()) {//check the whole locations and save the clicked location
 					if(map.g.get(p).isOn(e.getX(), e.getY())){
 						map.g.get(p).changeSel();
 						if(map.g.get(p).isSelected()) {
@@ -88,11 +86,11 @@ public class PubgGps {
 				}
 				if(p2 != null) {
 					dist = 0;
-					ArrayList<String> path = map.dijkstra(p1, p2);
+					ArrayList<String> path = map.dijkstra(p1, p2); //path with shortest distance
 					
 					for(int i=0; i<path.size()-1; i++) {
 						if(!map.g.get(path.get(i)).isSelected()) {
-							map.g.get(path.get(i)).changeSel();
+							map.g.get(path.get(i)).changeSel(); // make all the location in the path selected.
 						}
 						dist+=calculateDistance(path.get(i),path.get(i+1));
 					}
