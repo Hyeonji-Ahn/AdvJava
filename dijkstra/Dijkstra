@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 
@@ -22,10 +23,10 @@ public class Dijkstra{
 	private final int MAP_PIN_WIDTH = 20;
 	
 	class Vertex{
-		String info; //information of the data
-		private int x;
+		String info; //name of the place
+		private int x; // location
 		private int y;
-		private boolean selected;
+		private boolean selected; //is the place selected by user
 		HashSet<Edge> neighbors = new HashSet(); //neighbors that are connected to the vertex
 		
 		public Vertex(String info) { //constructor
@@ -45,7 +46,7 @@ public class Dijkstra{
 			return y;
 		}
 		
-		public boolean isOn(int m_x, int m_y) {
+		public boolean isOn(int m_x, int m_y) { // did the mouse clicked the map pin
 			return (m_x>=x && m_x<=x+MAP_PIN_WIDTH && m_y>=y && m_y<=y+MAP_PIN_WIDTH);
 		}
 		
@@ -57,7 +58,7 @@ public class Dijkstra{
 			return info + "," + x+ ","+y;
 		}
 		
-		public ArrayList<String> getNeighbors() {
+		public ArrayList<String> getNeighbors() { //get all the neighbor location of the vertex
 			ArrayList<String> nei = new ArrayList<String>();
 			for(Edge e: neighbors) {
 				nei.add(e.getOtherVertex(this).toString());
@@ -65,7 +66,7 @@ public class Dijkstra{
 			return nei;
 		}
 		
-		public void changeSel() {
+		public void changeSel() { //change the selected value
 			selected = !selected;
 		}
 		
@@ -74,7 +75,7 @@ public class Dijkstra{
 	private class Edge{
 		Vertex v1, v2; //two edges that are connected through this edge
 		int dist; //information of the edge
-		boolean selected;
+		boolean selected; //is the edge on the path
 		public Edge(Vertex v1, Vertex v2, int dist) { //constructor
 			this.v1 = v1;
 			this.v2 = v2;
@@ -221,7 +222,7 @@ public class Dijkstra{
 			curr = map.get(curr); //move the current vertex that current was originated from.
 		}
 		
-		ArrayList<String> ans = new ArrayList<String>();
+		ArrayList<String> ans = new ArrayList<String>(); //make the path into string
 		curr = start;
 		
 		for(Edge e: path) {
@@ -232,35 +233,13 @@ public class Dijkstra{
 		ans.add(curr.toString());
 		
 		return ans;
-//		
-//		//print the back traced list.
-//		String ans = "";
-//		
-//		int length = 0; //how many times that print line has \n
-//		
-//		curr = start;
-//		int totalDist = 0;
-//		
-//		for(Edge e: path) { //for every edge in the path list,
-//			ans+=curr.toString()+" - "; //start one
-//			ans+=e.getDist()+" - "; //what it leads to
-//			totalDist += e.getDist();
-//			curr = e.getOtherVertex(curr); //change the current position
-//			if((ans.length() - length * 70 ) / 70 >0) { // if the string is too long, add \n for readability.
-//				length += 1;
-//				ans+= "\n";
-//			}
-//		}
-//		ans+=curr.toString(); //add the last vertex to the print statement
-//		return ans+ "\nShortest distance between "+curr.toString()+" and "+start+" is "+(totalDist);
-		
 	}
 	
-	public Dijkstra(String fileName) throws FileNotFoundException{
-		File f = new File(fileName);
+	public Dijkstra(String fileName) throws FileNotFoundException{ //constructor
+		File f = new File(fileName); //read the file
 	    Scanner read = new Scanner(f);
 	    
-	    while(read.hasNext()) {
+	    while(read.hasNext()) { //get all the locations
 	    	String temp = read.nextLine();
 	    	if(temp.length()!=0) {
 	    		addVertex(temp);
@@ -269,10 +248,10 @@ public class Dijkstra{
 	    	}
 	    }
 	    
-	    while(read.hasNext()) {
+	    while(read.hasNext()) { //get all the connections
 	    	String[] temp = read.nextLine().split(" ");
 	    	if(temp.length!=1) {
-	    		for(int i=1; i<temp.length; i+=2) {
+	    		for(int i=1; i<temp.length; i+=2) { //connect each locations until the line is over
 	    			if(!g.get(temp[0]).getNeighbors().contains(temp[i])) {
 	    				connect(g.get(temp[0]).toString(), g.get(temp[i]).toString(), Integer.parseInt(temp[i+1]));
 	    			}
@@ -286,28 +265,35 @@ public class Dijkstra{
 	
 	public void paint (Graphics g1) throws IOException {
 		g1.drawImage(ImageIO.read(new File("erangel.jpg")).getScaledInstance(WIDTH, WIDTH, Image.SCALE_SMOOTH), 0, 0, WIDTH, WIDTH, null);
+		Set<Vertex> visited = new HashSet<Vertex>(); //visited vertex list for the check if the edge distance is already shown
+		g1.setFont(new Font ("Comic Sans", 1, 17));
 		
 		for(String p: g.keySet()) {
 			try {
-				if(g.get(p).isSelected()) {
+				visited.add(g.get(p));
+				if(g.get(p).isSelected()) { //draw location pin
+					//if the location is selected, show different color of map pin
 					g1.drawImage(ImageIO.read(new File("mapPin_selected.png")).getScaledInstance(MAP_PIN_WIDTH, MAP_PIN_WIDTH, 0), g.get(p).getX(), g.get(p).getY(), null);
 				}else {
 					g1.drawImage(ImageIO.read(new File("mapPin.png")).getScaledInstance(MAP_PIN_WIDTH, MAP_PIN_WIDTH, 0), g.get(p).getX(), g.get(p).getY(), null);
 				}
 				
-				for(Edge nei: g.get(p).neighbors) {
-					if(nei.selected) {
-						g1.setColor(Color.cyan);
-						g1.drawString(nei.dist+"", (g.get(p).getX()+MAP_PIN_WIDTH/2+nei.getOtherVertex(g.get(p)).getX()+MAP_PIN_WIDTH/2)/2, (g.get(p).getY()+MAP_PIN_WIDTH+nei.getOtherVertex(g.get(p)).getY()+MAP_PIN_WIDTH)/2);
-					}else {
-						g1.setColor(Color.red);
+				for(Edge nei: g.get(p).neighbors) { //draw the edge
+					if(!visited.contains(nei.getOtherVertex(g.get(p)))) { //check the edge is already drawn or not
+						if(nei.selected) { //for the path, edge has different color
+							g1.setColor(Color.cyan);
+							g1.drawString(nei.dist+"", (g.get(p).getX()+MAP_PIN_WIDTH/2+nei.getOtherVertex(g.get(p)).getX()+MAP_PIN_WIDTH/2)/2, (g.get(p).getY()+MAP_PIN_WIDTH+nei.getOtherVertex(g.get(p)).getY()+MAP_PIN_WIDTH)/2);
+						}else {
+							g1.setColor(Color.red);
+						}	
+						g1.drawLine(g.get(p).getX()+MAP_PIN_WIDTH/2, g.get(p).getY()+MAP_PIN_WIDTH, nei.getOtherVertex(g.get(p)).getX()+MAP_PIN_WIDTH/2, nei.getOtherVertex(g.get(p)).getY()+MAP_PIN_WIDTH);
+				
 					}
-					g1.drawLine(g.get(p).getX()+MAP_PIN_WIDTH/2, g.get(p).getY()+MAP_PIN_WIDTH, nei.getOtherVertex(g.get(p)).getX()+MAP_PIN_WIDTH/2, nei.getOtherVertex(g.get(p)).getY()+MAP_PIN_WIDTH);
 				}
 				
 				g1.setColor(Color.white);
-				g1.setFont(new Font ("Comic Sans", 1, 17));
-				g1.drawString(g.get(p).getName(), g.get(p).getX(), g.get(p).getY());
+				g1.drawString(g.get(p).getName(), g.get(p).getX(), g.get(p).getY()); //draw the name of the location
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -315,7 +301,7 @@ public class Dijkstra{
 	}
 	
 	
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws FileNotFoundException { //testing
 		Dijkstra graph = new Dijkstra("DijkstraTest");
 		System.out.println(graph.dijkstra("A,a", "E,e"));
 		
