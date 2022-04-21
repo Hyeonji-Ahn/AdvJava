@@ -1,9 +1,1 @@
-ss 221 388
-jj 508 376
-some 459 127
-jik 289 222
 
-ss jj some 
-jj ss some jik 
-some jj ss 
-jik jj 
