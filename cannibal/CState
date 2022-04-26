@@ -1,0 +1,78 @@
+package cannibal;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+public class CState {
+	
+	private final int BOATSTORAGE = 2;
+	int missL;
+	int missR;
+	int canL;
+	int canR;
+	boolean isLeft;
+	
+	public CState (int missL, int missR, int canL, int canR, boolean isLeft) {
+		this.missL  = missL;
+		this.missR = missR;
+		this.canL = canL;
+		this.canR = canR;
+		this.isLeft = isLeft;
+	}
+	
+	public String toString() {
+		return missL+"/"+canL+" || "+missR+"/"+canR;
+	}
+	
+	public Set<CState> nextState() {
+		
+		Set<CState> states = new HashSet<CState>();
+		for(int i=0; i<=BOATSTORAGE; i++) { //miss
+			for(int j=0; j<=BOATSTORAGE - i; j++) { //can
+				if(i+j!=0) {
+					CState newState;
+					if(isLeft) {
+						newState = new CState(missL-i,missR+i,canL-j,canR+j,!isLeft);
+					}else {
+						newState = new CState(missL+i,missR-i,canL+j,canR-j,!isLeft);
+					}
+					if(newState.isLegal()) {
+						states.add(newState);
+					}
+				}
+			}
+		}
+	
+		return states;
+	}
+	
+	public boolean isSolved() {
+		return (missL == 0)&&(canL == 0);
+	}
+	
+	public boolean isLegal() {
+		return !((missL!=0)&&(missL<canL) || (missR!=0)&&(missR<canR));
+	}
+	
+	public boolean equal(CState a) {
+		return (a.missL == missL)&&(a.missR == missR)&&(a.canL == canL) && (a.canR == canR) && (a.isLeft == isLeft);
+	}
+	
+	public int getHashcode() {
+		if(isLeft) {
+			return 100000000 + missL*1000000+missR*10000+canL*100+canR;
+		}else {
+			return 200000000 + missL*1000000+missR*10000+canL*100+canR;
+		}
+	}
+	
+	
+	public static void main(String[] args) {
+		CState newC = new CState(3,0,3,0,true);
+		System.out.println(newC.nextState());
+		System.out.println(newC.getHashcode());
+		System.out.println(newC.equal(newC));
+		System.out.println(newC.equal(new CState(2,1,2,1,true)));
+	}
+}
