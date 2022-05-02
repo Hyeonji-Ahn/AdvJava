@@ -1,0 +1,161 @@
+package cannibal;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+public class Hanoi {
+	public ArrayList<ArrayList<Integer>> p;
+	public int r; 
+	public int x;
+	
+	public Hanoi(ArrayList<ArrayList<Integer>> old_p, int r, int x) {
+		this.r = r;
+		this.x = x;
+		
+		p = new ArrayList<ArrayList<Integer>>();
+		for(int i=0; i<old_p.size(); i++) {
+			p.add(new ArrayList<Integer>());
+			if(old_p.get(i).size() != 0) {
+				for(int j=0; j<old_p.get(i).size(); j++) {
+					p.get(i).add(old_p.get(i).get(j));
+				}
+			}
+		}
+	}
+	
+	public Hanoi(int r, int pill) {
+		this.r = r;
+		this.x = pill;
+		p = new ArrayList<ArrayList<Integer>>();
+		p.add(new ArrayList<Integer>());
+		for(int i=0; i<r; i++) {
+			p.get(0).add(i);
+		}
+		for(int i=0; i<pill-1; i++) {
+			p.add(new ArrayList<Integer>());
+		}
+	}
+	
+	public String toString() {
+		String ans = "";
+		for(int i=0; i<p.size(); i++) {
+			for(int j=0; j<p.get(i).size(); j++) {
+				ans += p.get(i).get(j);
+			}
+			if(i != p.size()-1) {
+				ans+= " \\ ";
+			}
+			
+		}
+		return ans;
+	}
+	
+	public boolean isLegal() {
+		for(int i=0; i<p.size(); i++) {
+			if(p.get(i).size() != 0) {
+				int before = p.get(i).get(0);
+				for(int j=1; j<p.get(i).size(); j++) {
+					if(before>p.get(i).get(j)) {
+						return false;
+					}else {
+						before = p.get(i).get(j);
+					}
+				}
+			}
+			
+		}
+		return true;
+	}
+	
+	public Set<Hanoi> nextState(){
+		
+		Set<Hanoi> states = new HashSet<Hanoi>();
+		
+		for(int i=0; i<p.size(); i++) {
+			if(p.get(i).size()!= 0) {
+				for(int j=0; j<p.size(); j++) {
+					if(i != j) {
+						int temp = p.get(i).get(0);
+						p.get(i).remove(0);
+						p.get(j).add(0, temp);
+//						System.out.println(p);
+						Hanoi new_h =  new Hanoi(p,r,x);
+						if(new_h.isLegal()) {
+							states.add(new_h);
+						}
+						p.get(j).remove(0);
+						p.get(i).add(0,temp);	
+					}
+
+				}
+			}
+		}
+		return states;
+	}
+	
+	public boolean isSolved() {
+		return p.get(x-1).size() == r;
+	}
+	
+	public boolean equals(Object c) {
+//		System.out.println("use");
+		Hanoi obj = (Hanoi) c;
+		return obj.p.equals(p);
+	}
+	
+	public int hashCode() {
+		return 0;
+	}
+	
+	public ArrayList<Hanoi> solve(int depth, HashSet<Hanoi> previous, ArrayList<Hanoi> solution) throws InterruptedException {
+		
+		if(isSolved()) {
+//			System.out.println("YEAHH");
+			solution.add(this);
+			return solution;
+			
+		}else if(depth == 0) {
+			return null;
+			
+		}else {
+			for(Hanoi s : nextState()) {
+				if(!previous.contains(s)) {
+//					Thread.sleep(10);
+//					System.out.println(depth+" "+s);
+					previous.add(s);
+					ArrayList<Hanoi> x = s.solve(depth-1,previous,solution);
+					if(x!=null) {
+						solution.add(this);
+//						System.out.println(this);
+						return solution;
+					}
+				}
+			}
+			return null;
+		}
+	}
+	
+	public static ArrayList<Hanoi> reverse(ArrayList<Hanoi> l){
+		ArrayList<Hanoi> new_l = new ArrayList<Hanoi>() ;
+		for(int i=l.size()-1; i>=0; i--) {
+			new_l.add(l.get(i));
+		}
+		return new_l;
+	}
+	
+	public static void main(String[] args) throws InterruptedException {
+		Hanoi h = new Hanoi(4,3);
+		Hanoi h1 = new Hanoi(3,3);
+		Hanoi h2 = new Hanoi(4,3);
+//		System.out.println(h);
+//		System.out.println(h.isLegal());
+//		System.out.println(h.nextState());
+//		System.out.println(h1.equals(h));
+//		System.out.println(h.equals(h2));
+		
+		HashSet<Hanoi> p = new HashSet<Hanoi>();
+		p.add(h);
+		System.out.println(reverse(h.solve(100, p, new ArrayList<Hanoi>())));
+	}
+}
